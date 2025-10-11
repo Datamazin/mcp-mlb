@@ -1,0 +1,1603 @@
+#!/usr/bin/env node
+
+/**
+ * MLB MCP Server with MLB.com Integration
+ * 
+ * This server provides comprehensive access to MLB data through the Model Context Protocol.
+ * It offers tools for retrieving team information, player statistics, game schedules,
+ * live scores, and historical baseball data using the MLB Stats API.
+ * 
+ * Enhanced with MLB.com integration for news, player profiles, team pages,
+ * schedule information, and direct links to official MLB content.
+ * 
+ * Resources:
+ * - MLB Stats API: https://statsapi.mlb.com/
+ * - MLB.com Official Site: https://www.mlb.com/
+ * - Team Pages: https://www.mlb.com/{team-name}/
+ * - Player Profiles: https://www.mlb.com/player/{player-id}
+ * - Schedule: https://www.mlb.com/schedule/
+ * - News: https://www.mlb.com/news/
+ */
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+import { CallToolResult, TextContent } from '@modelcontextprotocol/sdk/types.js';
+import { MLBAPIClient } from './mlb-api.js';
+import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import type { ChartConfiguration } from 'chart.js';
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { Octokit } from '@octokit/rest';
+
+const MLB_API_BASE = 'https://statsapi.mlb.com/api/v1';
+
+// Create the MCP server
+const server = new McpServer({
+  name: 'mcp-mlb-server',
+  version: '1.0.0',
+});
+
+// Initialize MLB API client
+const mlbClient = new MLBAPIClient(MLB_API_BASE);
+
+/**
+ * Tool: Get team roster for any season (supports historical data)
+ */
+server.registerTool(
+  'get-team-roster',
+  {
+    title: 'Get Team Roster',
+    description: 'Get team roster for any year (supports historical data back to 1970s+)',
+    inputSchema: {
+      teamName: z.string().describe('Team name (e.g., "mets", "yankees", "dodgers")'),
+      season: z.number().optional().describe('Season year (supports historical data, defaults to current year)')
+    },
+    outputSchema: {
+      team: z.string(),
+      season: z.number(),
+      totalPlayers: z.number(),
+      positionPlayers: z.array(z.object({
+        name: z.string(),
+        id: z.number(),
+        position: z.string(),
+        jerseyNumber: z.string().optional()
+      })),
+      pitchers: z.array(z.object({
+        name: z.string(),
+        id: z.number(),
+        position: z.string(),
+        jerseyNumber: z.string().optional()
+      }))
+    }
+  },
+  async (input) => {
+    const { teamName, season = new Date().getFullYear() } = input;
+    
+    // MLB team ID mapping
+    const MLB_TEAMS: { [key: string]: number } = {
+      'orioles': 110, 'red sox': 111, 'yankees': 147, 'rays': 139, 'blue jays': 142,
+      'white sox': 145, 'guardians': 114, 'tigers': 116, 'royals': 118, 'twins': 142,
+      'astros': 117, 'angels': 108, 'athletics': 133, 'mariners': 136, 'rangers': 140,
+      'braves': 144, 'marlins': 146, 'mets': 121, 'phillies': 143, 'nationals': 120,
+      'cubs': 112, 'reds': 113, 'brewers': 158, 'pirates': 134, 'cardinals': 138,
+      'diamondbacks': 109, 'rockies': 115, 'dodgers': 119, 'padres': 135, 'giants': 137
+    };
+    
+    const normalizedTeam = teamName.toLowerCase().trim();
+    const teamId = MLB_TEAMS[normalizedTeam];
+    
+    if (!teamId) {
+      throw new Error(`Team "${teamName}" not found. Available teams: ${Object.keys(MLB_TEAMS).join(', ')}`);
+    }
+    
+    try {
+      const response = await mlbClient.getTeamRoster(teamId, season);
+      const players = response.roster || [];
+      
+      if (players.length === 0) {
+        throw new Error(`No roster data found for ${teamName} in ${season}. Historical roster data may not be available for this year.`);
+      }
+      
+      const positionPlayers = players.filter((p: any) => 
+        p.position && !['P'].includes(p.position.abbreviation)
+      ).map((p: any) => ({
+        name: p.person.fullName,
+        id: p.person.id,
+        position: p.position.name,
+        jerseyNumber: p.jerseyNumber || 'N/A'
+      }));
+      
+      const pitchers = players.filter((p: any) => 
+        p.position && p.position.abbreviation === 'P'
+      ).map((p: any) => ({
+        name: p.person.fullName,
+        id: p.person.id,
+        position: p.position.name,
+        jerseyNumber: p.jerseyNumber || 'N/A'
+      }));
+      
+      const output = {
+        team: teamName.charAt(0).toUpperCase() + teamName.slice(1),
+        season,
+        totalPlayers: players.length,
+        positionPlayers,
+        pitchers
+      };
+      
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+      
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching team roster: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get current MLB team standings
+ */
+server.registerTool(
+  'get-standings',
+  {
+    title: 'Get MLB Standings',
+    description: 'Get current MLB standings by league or division',
+    inputSchema: {
+      leagueId: z.number().optional().describe('League ID (103=AL, 104=NL)'),
+      divisionId: z.number().optional().describe('Division ID (200=AL West, 201=AL East, 202=AL Central, 203=NL West, 204=NL East, 205=NL Central)'),
+      standingsType: z.string().default('regularSeason').describe('Type of standings (regularSeason, springTraining, firstHalf, secondHalf)'),
+      season: z.number().optional().describe('Season year (defaults to current year)')
+    },
+    outputSchema: { 
+      standings: z.array(z.object({
+        team: z.string(),
+        wins: z.number(),
+        losses: z.number(),
+        winningPercentage: z.string(),
+        gamesBack: z.string(),
+        division: z.string(),
+        league: z.string()
+      }))
+    }
+  },
+  async ({ leagueId, divisionId, standingsType = 'regularSeason', season }) => {
+    try {
+      const standings = await mlbClient.getStandings({
+        leagueId,
+        divisionId,
+        standingsType,
+        season
+      });
+
+      const output = { standings };
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching standings: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get team information
+ */
+server.registerTool(
+  'get-team-info',
+  {
+    title: 'Get Team Information',
+    description: 'Get detailed information about an MLB team',
+    inputSchema: {
+      teamId: z.number().describe('MLB Team ID'),
+      hydrate: z.string().optional().describe('Additional data to include (e.g., "venue,league,division")')
+    },
+    outputSchema: {
+      id: z.number(),
+      name: z.string(),
+      teamName: z.string(),
+      locationName: z.string(),
+      abbreviation: z.string(),
+      league: z.object({
+        id: z.number(),
+        name: z.string()
+      }),
+      division: z.object({
+        id: z.number(),
+        name: z.string()
+      }),
+      venue: z.object({
+        id: z.number(),
+        name: z.string(),
+        city: z.string(),
+        state: z.string().optional()
+      }).optional()
+    }
+  },
+  async ({ teamId, hydrate }) => {
+    try {
+      const teamInfo = await mlbClient.getTeamInfo(teamId, hydrate);
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(teamInfo, null, 2)
+        }],
+        structuredContent: teamInfo
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching team info: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get player statistics
+ */
+server.registerTool(
+  'get-player-stats',
+  {
+    title: 'Get Player Statistics',
+    description: 'Get statistics for an MLB player',
+    inputSchema: {
+      playerId: z.number().describe('MLB Player ID'),
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, D=Division, W=Wild Card, L=League Championship, W=World Series)')
+    },
+    outputSchema: {
+      player: z.object({
+        id: z.number(),
+        fullName: z.string(),
+        primaryPosition: z.object({
+          code: z.string(),
+          name: z.string(),
+          type: z.string()
+        })
+      }),
+      stats: z.array(z.object({
+        type: z.object({
+          displayName: z.string()
+        }),
+        group: z.object({
+          displayName: z.string()
+        }),
+        stats: z.record(z.any())
+      }))
+    }
+  },
+  async ({ playerId, season, gameType = 'R' }) => {
+    try {
+      const playerStats = await mlbClient.getPlayerStats(playerId, season, gameType);
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(playerStats, null, 2)
+        }],
+        structuredContent: playerStats
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching player stats: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get game schedule
+ */
+server.registerTool(
+  'get-schedule',
+  {
+    title: 'Get Game Schedule',
+    description: 'Get MLB game schedule for a specific date range',
+    inputSchema: {
+      startDate: z.string().describe('Start date (YYYY-MM-DD format)'),
+      endDate: z.string().optional().describe('End date (YYYY-MM-DD format, defaults to startDate)'),
+      teamId: z.number().optional().describe('Filter by specific team ID'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+    },
+    outputSchema: {
+      totalGames: z.number(),
+      games: z.array(z.object({
+        gamePk: z.number(),
+        gameDate: z.string(),
+        status: z.object({
+          abstractGameState: z.string(),
+          codedGameState: z.string(),
+          detailedState: z.string()
+        }),
+        teams: z.object({
+          away: z.object({
+            team: z.object({
+              id: z.number(),
+              name: z.string()
+            }),
+            score: z.number().optional()
+          }),
+          home: z.object({
+            team: z.object({
+              id: z.number(),
+              name: z.string()
+            }),
+            score: z.number().optional()
+          })
+        }),
+        venue: z.object({
+          id: z.number(),
+          name: z.string()
+        })
+      }))
+    }
+  },
+  async ({ startDate, endDate, teamId, gameType = 'R' }) => {
+    try {
+      const schedule = await mlbClient.getSchedule({
+        startDate,
+        endDate: endDate || startDate,
+        teamId,
+        gameType
+      });
+
+      const output = {
+        totalGames: schedule.totalItems,
+        games: schedule.dates.flatMap((date: any) => date.games)
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching schedule: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get live game data
+ */
+server.registerTool(
+  'get-live-game',
+  {
+    title: 'Get Live Game Data',
+    description: 'Get live game data including current score, inning, and play-by-play',
+    inputSchema: {
+      gamePk: z.number().describe('Game primary key ID')
+    },
+    outputSchema: {
+      gamePk: z.number(),
+      gameDate: z.string(),
+      status: z.object({
+        abstractGameState: z.string(),
+        detailedState: z.string(),
+        inning: z.number().optional(),
+        inningState: z.string().optional()
+      }),
+      teams: z.object({
+        away: z.object({
+          team: z.object({
+            id: z.number(),
+            name: z.string()
+          }),
+          score: z.number(),
+          hits: z.number(),
+          errors: z.number()
+        }),
+        home: z.object({
+          team: z.object({
+            id: z.number(),
+            name: z.string()
+          }),
+          score: z.number(),
+          hits: z.number(),
+          errors: z.number()
+        })
+      }),
+      linescore: z.object({
+        innings: z.array(z.object({
+          num: z.number(),
+          away: z.object({ runs: z.number().optional() }),
+          home: z.object({ runs: z.number().optional() })
+        }))
+      }).optional()
+    }
+  },
+  async ({ gamePk }) => {
+    try {
+      const liveGame = await mlbClient.getLiveGame(gamePk);
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(liveGame, null, 2)
+        }],
+        structuredContent: liveGame
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching live game data: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Search players
+ */
+server.registerTool(
+  'search-players',
+  {
+    title: 'Search Players',
+    description: 'Search for MLB players by name',
+    inputSchema: {
+      name: z.string().describe('Player name to search for'),
+      activeStatus: z.string().default('Y').describe('Player active status (Y=Active, N=Inactive)')
+    },
+    outputSchema: {
+      players: z.array(z.object({
+        id: z.number(),
+        fullName: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        primaryNumber: z.string().optional(),
+        currentTeam: z.object({
+          id: z.number(),
+          name: z.string()
+        }).optional(),
+        primaryPosition: z.object({
+          code: z.string(),
+          name: z.string(),
+          type: z.string()
+        }),
+        birthDate: z.string(),
+        currentAge: z.number(),
+        height: z.string(),
+        weight: z.number(),
+        active: z.boolean()
+      }))
+    }
+  },
+  async ({ name, activeStatus = 'Y' }) => {
+    try {
+      const searchResults = await mlbClient.searchPlayers(name, activeStatus);
+
+      const output = { players: searchResults.people || [] };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error searching players: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get box score data
+ */
+server.registerTool(
+  'get-box-score',
+  {
+    title: 'Get Game Box Score',
+    description: 'Get detailed box score data for a specific game',
+    inputSchema: {
+      gamePk: z.number().describe('Game primary key ID')
+    },
+    outputSchema: {
+      gamePk: z.number().optional(),
+      gameDate: z.string().optional(),
+      teams: z.object({
+        away: z.object({
+          team: z.object({
+            id: z.number(),
+            name: z.string()
+          }).optional(),
+          teamStats: z.record(z.any()).optional(),
+          players: z.record(z.any()).optional()
+        }).optional(),
+        home: z.object({
+          team: z.object({
+            id: z.number(),
+            name: z.string()
+          }).optional(),
+          teamStats: z.record(z.any()).optional(),
+          players: z.record(z.any()).optional()
+        }).optional()
+      }).optional()
+    }
+  },
+  async ({ gamePk }) => {
+    try {
+      const boxScore = await mlbClient.getBoxScore(gamePk);
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(boxScore, null, 2)
+        }],
+        structuredContent: boxScore
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching box score: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get player game logs
+ */
+server.registerTool(
+  'get-player-game-logs',
+  {
+    title: 'Get Player Game Logs',
+    description: 'Get game-by-game statistics for a player in a season',
+    inputSchema: {
+      playerId: z.number().describe('MLB Player ID'),
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+    },
+    outputSchema: {
+      player: z.object({
+        id: z.number(),
+        fullName: z.string()
+      }),
+      gameLogs: z.array(z.object({
+        date: z.string(),
+        opponent: z.string(),
+        gameNumber: z.number(),
+        stats: z.record(z.any())
+      }))
+    }
+  },
+  async ({ playerId, season, gameType = 'R' }) => {
+    try {
+      const gameLogsData = await mlbClient.getPlayerGameLogs(playerId, season, gameType);
+
+      // Transform the API response to match expected schema
+      const gameLogs = [];
+      if (gameLogsData.stats && gameLogsData.stats.length > 0) {
+        const gameLogStats = gameLogsData.stats.find((stat: any) => 
+          stat.type && stat.type.displayName && 
+          stat.type.displayName.toLowerCase().includes('gamelog')
+        );
+        
+        if (gameLogStats && gameLogStats.splits) {
+          for (const split of gameLogStats.splits) {
+            gameLogs.push({
+              date: split.date || split.gameDate || 'Unknown',
+              opponent: `${split.isHome ? 'vs' : '@'} ${split.opponent?.name || 'Unknown'}`,
+              gameNumber: split.game?.gamePk || 0,
+              stats: split.stat || {}
+            });
+          }
+        }
+      }
+
+      const output = {
+        player: {
+          id: playerId,
+          fullName: gameLogsData.player?.fullName || 'Unknown Player'
+        },
+        gameLogs
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching player game logs: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get enhanced schedule with game PKs
+ */
+server.registerTool(
+  'get-schedule-with-games',
+  {
+    title: 'Get Schedule with Game Details',
+    description: 'Get MLB game schedule with game PKs for box score retrieval',
+    inputSchema: {
+      startDate: z.string().describe('Start date (YYYY-MM-DD format)'),
+      endDate: z.string().optional().describe('End date (YYYY-MM-DD format, defaults to startDate)'),
+      teamId: z.number().optional().describe('Filter by specific team ID'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+    },
+    outputSchema: {
+      totalGames: z.number(),
+      games: z.array(z.object({
+        gamePk: z.number(),
+        gameDate: z.string(),
+        status: z.object({
+          abstractGameState: z.string(),
+          detailedState: z.string()
+        }),
+        teams: z.object({
+          away: z.object({
+            team: z.object({
+              id: z.number(),
+              name: z.string()
+            })
+          }),
+          home: z.object({
+            team: z.object({
+              id: z.number(),
+              name: z.string()
+            })
+          })
+        }),
+        venue: z.object({
+          id: z.number(),
+          name: z.string()
+        })
+      }))
+    }
+  },
+  async ({ startDate, endDate, teamId, gameType = 'R' }) => {
+    try {
+      const schedule = await mlbClient.getScheduleWithGamePks({
+        startDate,
+        endDate: endDate || startDate,
+        teamId,
+        gameType
+      });
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(schedule, null, 2)
+        }],
+        structuredContent: schedule
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching enhanced schedule: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Visualize player game-by-game statistics
+ */
+server.registerTool(
+  'visualize-player-stats',
+  {
+    title: 'Visualize Player Game-by-Game Statistics',
+    description: 'Generate line chart or bar chart visualizations of player game-by-game statistical data',
+    inputSchema: {
+      playerId: z.number().describe('MLB Player ID'),
+      season: z.number().describe('Season year'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, P=Playoffs, D=Division, L=League Championship, W=World Series)'),
+      statCategory: z.enum(['hits', 'runs', 'rbi', 'homeRuns', 'doubles', 'triples', 'strikeOuts', 'baseOnBalls', 'atBats', 'avg']).describe('Statistical category to visualize'),
+      chartType: z.enum(['line', 'bar']).default('line').describe('Type of chart (line or bar)'),
+      title: z.string().optional().describe('Custom chart title'),
+      saveToFile: z.boolean().default(true).describe('Save chart to data/visualizations folder'),
+      filename: z.string().optional().describe('Custom filename (without extension)')
+    }
+  },
+  async (request): Promise<CallToolResult> => {
+    try {
+      const { playerId, season, gameType = 'R', statCategory, chartType = 'line', title, saveToFile = true, filename } = request;
+
+      // Get player game logs
+      const gameLogData = await mlbClient.getPlayerGameLogs(playerId, season, gameType);
+      
+      if (!gameLogData || !gameLogData.stats || gameLogData.stats.length === 0) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `No game logs found for player ${playerId} in ${season}`
+          }],
+          isError: true
+        };
+      }
+
+      const gameLogs = gameLogData.stats[0].splits;
+      
+      if (!gameLogs || gameLogs.length === 0) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `No game log entries found for player ${playerId} in ${season}`
+          }],
+          isError: true
+        };
+      }
+
+      // Extract the requested statistic from each game
+      const gameData: number[] = [];
+      const gameLabels: string[] = [];
+      let statSum = 0;
+      let validGames = 0;
+
+      gameLogs.forEach((game: any, index: number) => {
+        if (game.stat) {
+          let statValue: number;
+          
+          switch (statCategory) {
+            case 'hits':
+              statValue = game.stat.hits || 0;
+              break;
+            case 'runs':
+              statValue = game.stat.runs || 0;
+              break;
+            case 'rbi':
+              statValue = game.stat.rbi || 0;
+              break;
+            case 'homeRuns':
+              statValue = game.stat.homeRuns || 0;
+              break;
+            case 'doubles':
+              statValue = game.stat.doubles || 0;
+              break;
+            case 'triples':
+              statValue = game.stat.triples || 0;
+              break;
+            case 'strikeOuts':
+              statValue = game.stat.strikeOuts || 0;
+              break;
+            case 'baseOnBalls':
+              statValue = game.stat.baseOnBalls || 0;
+              break;
+            case 'atBats':
+              statValue = game.stat.atBats || 0;
+              break;
+            case 'avg':
+              statValue = game.stat.atBats > 0 ? (game.stat.hits || 0) / game.stat.atBats : 0;
+              break;
+            default:
+              statValue = 0;
+          }
+          
+          gameData.push(statValue);
+          gameLabels.push(`Game ${index + 1}`);
+          statSum += statValue;
+          validGames++;
+        }
+      });
+
+      if (validGames === 0) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `No valid statistical data found for ${statCategory}`
+          }],
+          isError: true
+        };
+      }
+
+      // Calculate statistics
+      const min = Math.min(...gameData);
+      const max = Math.max(...gameData);
+      const average = statSum / validGames;
+
+      // Create chart configuration
+      const width = 800;
+      const height = 400;
+      const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+
+      const statDisplayNames: Record<string, string> = {
+        hits: 'Hits',
+        runs: 'Runs',
+        rbi: 'RBIs',
+        homeRuns: 'Home Runs',
+        doubles: 'Doubles',
+        triples: 'Triples',
+        strikeOuts: 'Strikeouts',
+        baseOnBalls: 'Walks',
+        atBats: 'At Bats',
+        avg: 'Batting Average'
+      };
+
+      const chartTitle = title || `${statDisplayNames[statCategory]} - Game by Game (${season})`;
+
+      const configuration: ChartConfiguration = {
+        type: chartType,
+        data: {
+          labels: gameLabels,
+          datasets: [{
+            label: statDisplayNames[statCategory],
+            data: gameData,
+            borderColor: chartType === 'line' ? 'rgb(75, 192, 192)' : undefined,
+            backgroundColor: chartType === 'line' ? 'rgba(75, 192, 192, 0.2)' : 'rgba(54, 162, 235, 0.5)',
+            borderWidth: 2,
+            fill: chartType === 'line' ? false : undefined
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: chartTitle,
+              font: {
+                size: 16
+              }
+            },
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: statDisplayNames[statCategory]
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Games'
+              }
+            }
+          }
+        }
+      };
+
+      // Generate chart image
+      let imageBuffer: Buffer;
+      let base64Image: string;
+      let chartUrl: string;
+
+      try {
+        imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+        base64Image = imageBuffer.toString('base64');
+        chartUrl = `data:image/png;base64,${base64Image}`;
+      } catch (chartError) {
+        throw new Error(`Chart generation failed: ${chartError instanceof Error ? chartError.message : 'Unknown chart error'}`);
+      }
+
+      // Save chart to file if requested
+      let savedFilePath: string | undefined;
+      
+      if (saveToFile) {
+        try {
+          // Create filename if not provided
+          const gameTypeNames: Record<string, string> = {
+            'R': 'regular',
+            'S': 'spring',
+            'P': 'playoffs',
+            'D': 'division',
+            'L': 'championship',
+            'W': 'worldseries'
+          };
+          
+          const defaultFilename = filename || 
+            `player-${playerId}-${statCategory}-${season}-${gameTypeNames[gameType] || gameType}`;
+          
+          const dataDir = path.join(process.cwd(), 'data', 'visualizations');
+          
+          // Ensure directory exists
+          if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+          }
+          
+          savedFilePath = path.join(dataDir, `${defaultFilename}.png`);
+          
+          // Save the image
+          fs.writeFileSync(savedFilePath, imageBuffer);
+          
+        } catch (saveError) {
+          console.error('Warning: Could not save chart to file:', saveError);
+        }
+      }
+
+      const result = {
+        chartUrl,
+        totalGames: validGames,
+        statSummary: {
+          min,
+          max,
+          average: Math.round(average * 1000) / 1000, // Round to 3 decimal places
+          total: statSum
+        },
+        savedFile: savedFilePath || null
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(result, null, 2)
+        }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error generating visualization: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Look up players by name, position, team, etc.
+ */
+server.registerTool(
+  'lookup-player',
+  {
+    title: 'Lookup Player',
+    description: 'Search for players by name, position, team, or other criteria',
+    inputSchema: {
+      searchTerm: z.string().describe('Player name or search criteria (e.g., "harper", "nola,", "yankees pitcher")'),
+      gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, P=Playoffs)'),
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      sportId: z.number().default(1).describe('Sport ID (1=MLB)')
+    }
+  },
+  async ({ searchTerm, gameType = 'R', season, sportId = 1 }) => {
+    try {
+      const players = await mlbClient.lookupPlayer(searchTerm, gameType, season, sportId);
+      
+      const output = { players };
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error looking up player: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Look up teams by name, city, abbreviation, etc.
+ */
+server.registerTool(
+  'lookup-team',
+  {
+    title: 'Lookup Team',
+    description: 'Search for teams by name, city, abbreviation, or other criteria',
+    inputSchema: {
+      searchTerm: z.string().describe('Team name, city, or abbreviation (e.g., "yankees", "new york", "NYY")'),
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      sportId: z.number().default(1).describe('Sport ID (1=MLB)')
+    }
+  },
+  async ({ searchTerm, season, sportId = 1 }) => {
+    try {
+      const teams = await mlbClient.lookupTeam(searchTerm, season, sportId);
+      
+      const output = { teams };
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error looking up team: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get detailed game boxscore
+ */
+server.registerTool(
+  'get-boxscore',
+  {
+    title: 'Get Game Boxscore',
+    description: 'Get detailed boxscore data for a specific game',
+    inputSchema: {
+      gamePk: z.number().describe('Game primary key (unique MLB game ID)')
+    }
+  },
+  async ({ gamePk }) => {
+    try {
+      const boxscore = await mlbClient.getBoxscore(gamePk);
+      
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(boxscore, null, 2)
+        }],
+        structuredContent: boxscore
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching boxscore: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get league leaders for statistical categories
+ */
+server.registerTool(
+  'get-league-leaders',
+  {
+    title: 'Get League Leaders',
+    description: 'Get statistical leaders for specified categories (homeRuns, battingAverage, era, wins, etc.)',
+    inputSchema: {
+      leaderCategories: z.string().describe('Stat category (homeRuns, battingAverage, rbi, era, wins, strikeouts, etc.)'),
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      leagueId: z.number().optional().describe('League ID (103=AL, 104=NL, omit for both leagues)'),
+      limit: z.number().default(10).describe('Number of leaders to return (default 10)')
+    }
+  },
+  async ({ leaderCategories, season, leagueId, limit = 10 }) => {
+    try {
+      const leaders = await mlbClient.getLeagueLeaders(leaderCategories, season, leagueId, limit);
+      
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(leaders, null, 2)
+        }],
+        structuredContent: leaders
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching league leaders: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get MLB.com Links and Resources
+ */
+server.registerTool(
+  'get-mlb-com-links',
+  {
+    title: 'Get MLB.com Links and Resources',
+    description: 'Generate direct links to MLB.com pages for teams, players, schedules, news, and other resources',
+    inputSchema: {
+      linkType: z.enum(['team', 'player', 'schedule', 'standings', 'news', 'stats', 'postseason', 'draft', 'prospects']).describe('Type of MLB.com link to generate'),
+      teamId: z.number().optional().describe('Team ID for team-specific pages'),
+      playerId: z.number().optional().describe('Player ID for player profile pages'),
+      category: z.string().optional().describe('News category or stats category for filtered content')
+    },
+    outputSchema: {
+      linkType: z.string(),
+      primaryUrl: z.string(),
+      relatedUrls: z.array(z.object({
+        title: z.string(),
+        url: z.string(),
+        description: z.string()
+      })),
+      description: z.string()
+    }
+  },
+  async ({ linkType, teamId, playerId, category }) => {
+    try {
+      const teamSlugs: { [key: number]: string } = {
+        108: 'angels', 109: 'diamondbacks', 110: 'orioles', 111: 'red-sox',
+        112: 'cubs', 113: 'reds', 114: 'guardians', 115: 'rockies',
+        116: 'tigers', 117: 'astros', 118: 'royals', 119: 'dodgers',
+        120: 'nationals', 121: 'mets', 133: 'athletics', 134: 'pirates',
+        135: 'padres', 136: 'mariners', 137: 'giants', 138: 'cardinals',
+        139: 'rays', 140: 'rangers', 142: 'twins', 143: 'phillies',
+        144: 'braves', 145: 'white-sox', 146: 'marlins', 147: 'yankees',
+        158: 'brewers'
+      };
+
+      let primaryUrl = 'https://www.mlb.com/';
+      const relatedUrls: Array<{ title: string; url: string; description: string }> = [];
+      let description = '';
+
+      switch (linkType) {
+        case 'team':
+          if (teamId && teamSlugs[teamId]) {
+            const teamSlug = teamSlugs[teamId];
+            primaryUrl = `https://www.mlb.com/${teamSlug}/`;
+            description = `Official MLB.com team page with roster, schedule, news, and stats`;
+            
+            relatedUrls.push(
+              { title: 'Schedule', url: `https://www.mlb.com/${teamSlug}/schedule/`, description: 'Team schedule and game results' },
+              { title: 'Roster', url: `https://www.mlb.com/${teamSlug}/roster/`, description: 'Current team roster and player profiles' },
+              { title: 'Stats', url: `https://www.mlb.com/${teamSlug}/stats/`, description: 'Team and player statistics' },
+              { title: 'News', url: `https://www.mlb.com/${teamSlug}/news/`, description: 'Latest team news and updates' },
+              { title: 'Tickets', url: `https://www.mlb.com/${teamSlug}/tickets/`, description: 'Purchase game tickets' }
+            );
+          } else {
+            primaryUrl = 'https://www.mlb.com/teams/';
+            description = 'Browse all MLB teams and their official pages';
+          }
+          break;
+
+        case 'player':
+          if (playerId) {
+            primaryUrl = `https://www.mlb.com/player/${playerId}`;
+            description = `Official MLB.com player profile with stats, bio, and news`;
+            
+            relatedUrls.push(
+              { title: 'Stats', url: `https://www.mlb.com/player/${playerId}/stats`, description: 'Detailed player statistics' },
+              { title: 'Game Logs', url: `https://www.mlb.com/player/${playerId}/gamelogs`, description: 'Game-by-game performance' },
+              { title: 'Bio', url: `https://www.mlb.com/player/${playerId}/bio`, description: 'Player biography and career highlights' }
+            );
+          } else {
+            primaryUrl = 'https://www.mlb.com/players/';
+            description = 'Search and browse MLB player profiles';
+          }
+          break;
+
+        case 'schedule':
+          primaryUrl = 'https://www.mlb.com/schedule/';
+          description = 'Complete MLB schedule with games, times, and broadcast information';
+          
+          relatedUrls.push(
+            { title: 'Today\'s Games', url: 'https://www.mlb.com/schedule/today', description: 'Games scheduled for today' },
+            { title: 'Postseason', url: 'https://www.mlb.com/postseason/', description: 'Playoff schedule and results' },
+            { title: 'Spring Training', url: 'https://www.mlb.com/spring-training/', description: 'Spring training schedule and information' }
+          );
+          break;
+
+        case 'standings':
+          primaryUrl = 'https://www.mlb.com/standings/';
+          description = 'Current MLB standings by division and wild card race';
+          
+          relatedUrls.push(
+            { title: 'Wild Card', url: 'https://www.mlb.com/standings/wild-card', description: 'Wild card standings and race' },
+            { title: 'Playoff Picture', url: 'https://www.mlb.com/postseason/', description: 'Current playoff bracket and scenarios' }
+          );
+          break;
+
+        case 'news':
+          primaryUrl = category ? `https://www.mlb.com/news/${category}` : 'https://www.mlb.com/news/';
+          description = 'Latest MLB news, updates, and analysis';
+          
+          relatedUrls.push(
+            { title: 'Trade Rumors', url: 'https://www.mlb.com/news/trade-rumors', description: 'Latest trade news and rumors' },
+            { title: 'Injuries', url: 'https://www.mlb.com/news/injuries', description: 'Injury reports and updates' },
+            { title: 'Awards', url: 'https://www.mlb.com/news/awards', description: 'Award winners and candidates' },
+            { title: 'Features', url: 'https://www.mlb.com/news/features', description: 'In-depth features and analysis' }
+          );
+          break;
+
+        case 'stats':
+          primaryUrl = category ? `https://www.mlb.com/stats/${category}` : 'https://www.mlb.com/stats/';
+          description = 'Comprehensive MLB statistics and leaderboards';
+          
+          relatedUrls.push(
+            { title: 'Leaders', url: 'https://www.mlb.com/stats/leaders', description: 'Statistical leaders by category' },
+            { title: 'Team Stats', url: 'https://www.mlb.com/stats/team', description: 'Team statistics and rankings' },
+            { title: 'Advanced Stats', url: 'https://www.mlb.com/stats/advanced', description: 'Advanced metrics and analytics' },
+            { title: 'Historical', url: 'https://www.mlb.com/stats/historical', description: 'Historical statistics and records' }
+          );
+          break;
+
+        case 'postseason':
+          primaryUrl = 'https://www.mlb.com/postseason/';
+          description = 'Complete postseason coverage including bracket, schedule, and results';
+          
+          relatedUrls.push(
+            { title: 'Bracket', url: 'https://www.mlb.com/postseason/bracket', description: 'Interactive playoff bracket' },
+            { title: 'Schedule', url: 'https://www.mlb.com/postseason/schedule', description: 'Playoff schedule and times' },
+            { title: 'History', url: 'https://www.mlb.com/postseason/history', description: 'Postseason history and records' }
+          );
+          break;
+
+        case 'draft':
+          primaryUrl = 'https://www.mlb.com/draft/';
+          description = 'MLB Draft coverage including prospects, results, and analysis';
+          
+          relatedUrls.push(
+            { title: 'Prospects', url: 'https://www.mlb.com/prospects/', description: 'Top prospects and rankings' },
+            { title: 'Draft Results', url: 'https://www.mlb.com/draft/results', description: 'Draft picks and selections' },
+            { title: 'Pipeline', url: 'https://www.mlb.com/prospects/pipeline', description: 'Prospect rankings by team' }
+          );
+          break;
+
+        case 'prospects':
+          primaryUrl = 'https://www.mlb.com/prospects/';
+          description = 'Top prospects, rankings, and minor league coverage';
+          
+          relatedUrls.push(
+            { title: 'Top 100', url: 'https://www.mlb.com/prospects/top-100', description: 'Top 100 prospect rankings' },
+            { title: 'Pipeline', url: 'https://www.mlb.com/prospects/pipeline', description: 'Team-by-team prospect rankings' },
+            { title: 'Draft', url: 'https://www.mlb.com/draft/', description: 'MLB Draft information' }
+          );
+          break;
+
+        default:
+          primaryUrl = 'https://www.mlb.com/';
+          description = 'Official Major League Baseball website';
+      }
+
+      const output = {
+        linkType,
+        primaryUrl,
+        relatedUrls,
+        description
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error generating MLB.com links: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get Enhanced Player Information with MLB.com Integration
+ */
+server.registerTool(
+  'get-enhanced-player-info',
+  {
+    title: 'Get Enhanced Player Information',
+    description: 'Get comprehensive player information including MLB.com profile links and additional context',
+    inputSchema: {
+      playerId: z.number().describe('MLB Player ID'),
+      includeMLBcomLinks: z.boolean().default(true).describe('Include MLB.com profile and related links'),
+      season: z.number().optional().describe('Season year for stats (defaults to current year)')
+    },
+    outputSchema: {
+      player: z.object({
+        id: z.number(),
+        fullName: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        primaryNumber: z.string().optional(),
+        currentTeam: z.object({
+          id: z.number(),
+          name: z.string()
+        }).optional(),
+        primaryPosition: z.object({
+          code: z.string(),
+          name: z.string(),
+          type: z.string()
+        }),
+        birthDate: z.string(),
+        currentAge: z.number(),
+        height: z.string(),
+        weight: z.number(),
+        active: z.boolean()
+      }),
+      mlbComLinks: z.object({
+        profileUrl: z.string(),
+        statsUrl: z.string(),
+        gameLogsUrl: z.string(),
+        bioUrl: z.string(),
+        teamUrl: z.string().optional()
+      }).optional(),
+      currentStats: z.record(z.any()).optional()
+    }
+  },
+  async ({ playerId, includeMLBcomLinks = true, season }) => {
+    try {
+      // Get basic player info
+      const playerInfo = await mlbClient.searchPlayers(playerId.toString(), 'Y');
+      const player = playerInfo.people?.[0];
+
+      if (!player) {
+        throw new Error(`Player with ID ${playerId} not found`);
+      }
+
+      let mlbComLinks;
+      if (includeMLBcomLinks) {
+        const teamSlugs: { [key: number]: string } = {
+          108: 'angels', 109: 'diamondbacks', 110: 'orioles', 111: 'red-sox',
+          112: 'cubs', 113: 'reds', 114: 'guardians', 115: 'rockies',
+          116: 'tigers', 117: 'astros', 118: 'royals', 119: 'dodgers',
+          120: 'nationals', 121: 'mets', 133: 'athletics', 134: 'pirates',
+          135: 'padres', 136: 'mariners', 137: 'giants', 138: 'cardinals',
+          139: 'rays', 140: 'rangers', 142: 'twins', 143: 'phillies',
+          144: 'braves', 145: 'white-sox', 146: 'marlins', 147: 'yankees',
+          158: 'brewers'
+        };
+
+        mlbComLinks = {
+          profileUrl: `https://www.mlb.com/player/${playerId}`,
+          statsUrl: `https://www.mlb.com/player/${playerId}/stats`,
+          gameLogsUrl: `https://www.mlb.com/player/${playerId}/gamelogs`,
+          bioUrl: `https://www.mlb.com/player/${playerId}/bio`,
+          teamUrl: player.currentTeam?.id && teamSlugs[player.currentTeam.id] 
+            ? `https://www.mlb.com/${teamSlugs[player.currentTeam.id]}/`
+            : undefined
+        };
+      }
+
+      // Get current season stats if available
+      let currentStats;
+      try {
+        const statsData = await mlbClient.getPlayerStats(playerId, season);
+        currentStats = statsData.stats?.[0]?.stats;
+      } catch (statsError) {
+        // Stats may not be available, continue without them
+        console.error('Could not fetch player stats:', statsError);
+      }
+
+      const output = {
+        player,
+        mlbComLinks,
+        currentStats
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching enhanced player info: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get Enhanced Team Information with MLB.com Integration
+ */
+server.registerTool(
+  'get-enhanced-team-info',
+  {
+    title: 'Get Enhanced Team Information',
+    description: 'Get comprehensive team information including MLB.com team pages and additional resources',
+    inputSchema: {
+      teamId: z.number().describe('MLB Team ID'),
+      includeMLBcomLinks: z.boolean().default(true).describe('Include MLB.com team pages and related links'),
+      includeCurrentStats: z.boolean().default(true).describe('Include current team statistics')
+    },
+    outputSchema: {
+      team: z.object({
+        id: z.number(),
+        name: z.string(),
+        teamName: z.string(),
+        locationName: z.string(),
+        abbreviation: z.string(),
+        league: z.object({
+          id: z.number(),
+          name: z.string()
+        }),
+        division: z.object({
+          id: z.number(),
+          name: z.string()
+        }),
+        venue: z.object({
+          id: z.number(),
+          name: z.string(),
+          city: z.string(),
+          state: z.string().optional()
+        }).optional()
+      }),
+      mlbComLinks: z.object({
+        teamUrl: z.string(),
+        scheduleUrl: z.string(),
+        rosterUrl: z.string(),
+        statsUrl: z.string(),
+        newsUrl: z.string(),
+        ticketsUrl: z.string()
+      }).optional(),
+      currentStandings: z.record(z.any()).optional()
+    }
+  },
+  async ({ teamId, includeMLBcomLinks = true, includeCurrentStats = true }) => {
+    try {
+      // Get basic team info
+      const teamInfo = await mlbClient.getTeamInfo(teamId, 'venue,league,division');
+
+      let mlbComLinks;
+      if (includeMLBcomLinks) {
+        const teamSlugs: { [key: number]: string } = {
+          108: 'angels', 109: 'diamondbacks', 110: 'orioles', 111: 'red-sox',
+          112: 'cubs', 113: 'reds', 114: 'guardians', 115: 'rockies',
+          116: 'tigers', 117: 'astros', 118: 'royals', 119: 'dodgers',
+          120: 'nationals', 121: 'mets', 133: 'athletics', 134: 'pirates',
+          135: 'padres', 136: 'mariners', 137: 'giants', 138: 'cardinals',
+          139: 'rays', 140: 'rangers', 142: 'twins', 143: 'phillies',
+          144: 'braves', 145: 'white-sox', 146: 'marlins', 147: 'yankees',
+          158: 'brewers'
+        };
+
+        const teamSlug = teamSlugs[teamId];
+        if (teamSlug) {
+          mlbComLinks = {
+            teamUrl: `https://www.mlb.com/${teamSlug}/`,
+            scheduleUrl: `https://www.mlb.com/${teamSlug}/schedule/`,
+            rosterUrl: `https://www.mlb.com/${teamSlug}/roster/`,
+            statsUrl: `https://www.mlb.com/${teamSlug}/stats/`,
+            newsUrl: `https://www.mlb.com/${teamSlug}/news/`,
+            ticketsUrl: `https://www.mlb.com/${teamSlug}/tickets/`
+          };
+        }
+      }
+
+      // Get current standings if available
+      let currentStandings;
+      if (includeCurrentStats) {
+        try {
+          const standings = await mlbClient.getStandings({
+            divisionId: teamInfo.division?.id
+          });
+          const teamStanding = standings.find((s: any) => s.team.id === teamId);
+          if (teamStanding) {
+            currentStandings = teamStanding;
+          }
+        } catch (standingsError) {
+          // Standings may not be available, continue without them
+          console.error('Could not fetch team standings:', standingsError);
+        }
+      }
+
+      const output = {
+        team: teamInfo,
+        mlbComLinks,
+        currentStandings
+      };
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching enhanced team info: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Main function to start the server
+ */
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error('MLB MCP Server with MLB.com Integration running on stdio');
+}
+
+// Handle errors gracefully
+process.on('SIGINT', async () => {
+  console.error('Shutting down MLB MCP Server...');
+  process.exit(0);
+});
+
+// Start the server
+main().catch((error) => {
+  console.error('Fatal error in main():', error);
+  process.exit(1);
+});
