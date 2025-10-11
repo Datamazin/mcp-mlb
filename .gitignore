@@ -154,6 +154,9 @@ config/production.json
 secrets.json
 
 # Ignore large dataset files if any
+data/check
+data/static
+data/test
 data/raw-data/
 data/cache/
 data/temp/
@@ -214,3 +217,7 @@ venv.bak/
 .local
 .cache
 .tmp
+
+# MLB MCP Server CSV exports - TRACKED
+# data/csv/ folder and CSV files are tracked for analysis
+# These contain player game-by-game statistics exported from MCP server

@@ -3,6 +3,8 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import fs from 'fs';
+import path from 'path';
 
 // Known players database for quick lookup
 const KNOWN_PLAYERS = {
@@ -20,6 +22,90 @@ const KNOWN_PLAYERS = {
   'freddie freeman': { id: 518692, name: 'Freddie Freeman', teamId: 119 },
   'jose altuve': { id: 514888, name: 'Jose Altuve', teamId: 117 }
 };
+
+// Function to export game logs to CSV
+function exportToCSV(gameLogs, playerName, season, gameType) {
+  // Create data/csv directory if it doesn't exist
+  const csvDir = path.join(process.cwd(), 'data', 'csv');
+  if (!fs.existsSync(csvDir)) {
+    fs.mkdirSync(csvDir, { recursive: true });
+    console.log('📁 Created data/csv directory');
+  }
+
+  // Generate filename
+  const sanitizedPlayerName = playerName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  const gameTypeName = gameType === 'R' ? 'regular' : gameType.toLowerCase();
+  const filename = `${sanitizedPlayerName}-${season}-${gameTypeName}-game-logs.csv`;
+  const filepath = path.join(csvDir, filename);
+
+  // CSV header
+  const headers = [
+    'Game_Number',
+    'Date',
+    'Opponent',
+    'At_Bats',
+    'Hits',
+    'Runs',
+    'RBI',
+    'Home_Runs',
+    'Doubles',
+    'Triples',
+    'Walks',
+    'Strikeouts',
+    'Stolen_Bases',
+    'Game_Average',
+    'Cumulative_Average'
+  ];
+
+  // Build CSV content
+  let csvContent = headers.join(',') + '\n';
+  
+  let cumulativeHits = 0;
+  let cumulativeAtBats = 0;
+
+  gameLogs.forEach((game, index) => {
+    const stats = game.stats || {};
+    
+    const atBats = stats.atBats || 0;
+    const hits = stats.hits || 0;
+    
+    cumulativeHits += hits;
+    cumulativeAtBats += atBats;
+    
+    const gameAvg = atBats > 0 ? (hits / atBats).toFixed(3) : '0.000';
+    const cumulativeAvg = cumulativeAtBats > 0 ? (cumulativeHits / cumulativeAtBats).toFixed(3) : '0.000';
+    
+    const row = [
+      index + 1,
+      game.date || 'Unknown',
+      (game.opponent || 'Unknown').replace(/,/g, ' vs'), // Remove commas for CSV
+      atBats,
+      hits,
+      stats.runs || 0,
+      stats.rbi || 0,
+      stats.homeRuns || 0,
+      stats.doubles || 0,
+      stats.triples || 0,
+      stats.baseOnBalls || 0,
+      stats.strikeOuts || 0,
+      stats.stolenBases || 0,
+      gameAvg,
+      cumulativeAvg
+    ];
+    
+    csvContent += row.join(',') + '\n';
+  });
+
+  // Write CSV file
+  try {
+    fs.writeFileSync(filepath, csvContent);
+    console.log(`📊 CSV exported successfully: ${filepath}`);
+    return filepath;
+  } catch (error) {
+    console.error(`❌ Error writing CSV file: ${error.message}`);
+    return null;
+  }
+}
 
 async function getPlayerGameByGameStats(playerName, season, gameType = 'R') {
   const transport = new StdioClientTransport({
@@ -199,6 +285,15 @@ async function getPlayerGameByGameStats(playerName, season, gameType = 'R') {
       const avgLabel = gameType === 'R' ? 'Season AVG' : `${gameTypeNames[gameType]} AVG`;
       const avg = (totalStats.hits / totalStats.atBats).toFixed(3);
       console.log(`${avgLabel}: ${avg}`);
+    }
+    
+    // Export data to CSV
+    console.log(`\n📁 Exporting game logs to CSV...`);
+    const csvPath = exportToCSV(gameLogs, playerName, season, gameType);
+    
+    if (csvPath) {
+      console.log(`✅ Game-by-game data exported to: ${path.relative(process.cwd(), csvPath)}`);
+      console.log(`📊 CSV contains ${gameLogs.length} games with detailed statistics`);
     }
     
     console.log(`\n✅ Successfully retrieved ${gameTypeNames[gameType]} game-by-game data for ${playerName}!`);

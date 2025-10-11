@@ -1,0 +1,5 @@
+Game_Number,Date,Opponent,At_Bats,Hits,Runs,RBI,Home_Runs,Doubles,Triples,Walks,Strikeouts,Stolen_Bases,Game_Average,Cumulative_Average
+1,2025-10-04,vs New York Yankees,4,3,1,2,1,0,0,0,0,0,0.750,0.750
+2,2025-10-05,vs New York Yankees,5,3,2,4,1,0,0,0,0,0,0.600,0.667
+3,2025-10-07,@ New York Yankees,4,2,2,2,1,0,0,1,0,0,0.500,0.615
+4,2025-10-08,@ New York Yankees,4,1,0,1,0,0,0,1,1,0,0.250,0.529
