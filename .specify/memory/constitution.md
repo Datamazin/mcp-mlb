@@ -1,19 +1,21 @@
 <!--
-Sync Impact Report - Constitution v2.1.0
-Version change: 2.0.0 → 2.1.0
+Sync Impact Report - Constitution v2.2.0
+Version change: 2.1.0 → 2.2.0
 Modified principles:
-- ENHANCED: Dynamic API-First Development (now includes MLB-StatsAPI reference requirement)
+- NEW: Existing Functionality Verification (Principle VII - mandatory check before new file creation)
+- ENHANCED: Feature Implementation Process (added existing functionality verification requirement)
+- ENHANCED: Governance (added existing functionality verification to code review checklist)
+- RENUMBERED: Official MLB.com Integration (moved from VII to VIII)
+Previous v2.1.0 changes:
+- ENHANCED: Dynamic API-First Development (MLB-StatsAPI reference requirement)
 - NEW: MLB-StatsAPI Reference Architecture (mandatory reference implementation)
 - NEW: Dynamic Script Architecture (variable queries, no single-use files)
-- ENHANCED: Official MLB.com Integration (renumbered to VII, expanded context)
 - ENHANCED: Endpoint Consistency (MLB-StatsAPI pattern compliance required)
-- ENHANCED: Feature Implementation Process (MLB-StatsAPI research required)
-- ENHANCED: Governance (added dynamic script architecture verification)
 Templates requiring updates:
-✅ Updated: plan-template.md (added MLB-StatsAPI reference and dynamic script architecture checks)
-✅ Updated: spec-template.md (added MLB-StatsAPI and dynamic script functional requirements)
-✅ Updated: tasks-template.md (added MLB-StatsAPI research and dynamic naming convention tasks)
-Follow-up TODOs: None - all templates synchronized with MLB-StatsAPI reference architecture
+🔄 TODO: Update plan-template.md (add existing functionality verification step)
+🔄 TODO: Update spec-template.md (add existing functionality check requirements)
+🔄 TODO: Update tasks-template.md (add existing functionality verification task)
+Follow-up TODOs: Update all development templates to include mandatory existing functionality verification
 -->
 
 # MLB MCP Server Constitution
@@ -50,7 +52,12 @@ All JavaScript files MUST be named and designed for variable queries rather than
 
 **Rationale**: Dynamic scripts enable reusable tooling, reduce code duplication, and provide consistent interfaces for varied baseball analysis needs.
 
-### VII. Official MLB.com Integration
+### VII. Existing Functionality Verification
+Before creating any new script or tool, developers MUST first check for existing functionality in this order: (1) MCP Server built-in tools, (2) Existing script files with similar purposes, (3) Utility functions that can be extended or parameterized. New files MUST only be created when no existing functionality can be reasonably extended or repurposed. All searches MUST use semantic search and file pattern matching to discover related implementations before proceeding with new development.
+
+**Rationale**: Prevents code duplication, reduces maintenance burden, and ensures consistent user experience. The codebase contains extensive functionality that should be leveraged rather than duplicated.
+
+### VIII. Official MLB.com Integration
 All enhanced data tools MUST provide direct links to official MLB.com resources when available. Player profiles MUST include MLB.com profile links. Team information MUST include official team pages. Game data MUST reference official MLB.com game centers when applicable. This establishes authoritative source traceability for all data.
 
 **Rationale**: MLB.com is the authoritative source for baseball information. Direct integration provides users with official context and ensures data authenticity.
@@ -72,7 +79,7 @@ Input parameters MUST be validated in this order: (1) Live MLB API metadata look
 ## Development Workflow
 
 ### Feature Implementation Process
-New features MUST begin with MLB-StatsAPI endpoint research and MLB API metadata exploration to understand available parameters and response structures. Implementation MUST follow MLB-StatsAPI patterns for performance and scalability. All script files MUST be named for dynamic capability (e.g., `analyze-player-performance.js`) rather than specific queries (e.g., `pete-alonso-analysis.js`). All features MUST support both programmatic use (MCP tools) and command-line execution for testing with variable parameters.
+New features MUST begin with comprehensive existing functionality verification using semantic search, file pattern matching, and MCP tool inventory before any new file creation. After confirming no suitable existing functionality exists, development MUST proceed with MLB-StatsAPI endpoint research and MLB API metadata exploration to understand available parameters and response structures. Implementation MUST follow MLB-StatsAPI patterns for performance and scalability. All script files MUST be named for dynamic capability (e.g., `analyze-player-performance.js`) rather than specific queries (e.g., `pete-alonso-analysis.js`). All features MUST support both programmatic use (MCP tools) and command-line execution for testing with variable parameters.
 
 ### Testing Requirements
 All tools MUST be tested with real MLB API data, not mock responses. Historical data queries MUST be validated against known baseball facts (e.g., 1985 Mets roster). Current season data MUST be tested against live API responses. Error conditions MUST be tested with invalid parameters.
@@ -84,8 +91,8 @@ All tools MUST include usage examples with real MLB data. Parameter descriptions
 
 This constitution supersedes all other development practices. All code changes MUST comply with dynamic API-first principles. Static implementations are considered technical debt and MUST be refactored to use MLB API metadata. New features MUST demonstrate metadata-driven parameter validation before implementation approval. Single-use script files are considered anti-pattern and MUST be refactored to dynamic parameter-driven scripts.
 
-All code reviews MUST verify: (1) MLB-StatsAPI reference compliance, (2) MLB metadata usage for parameter validation, (3) Comprehensive game type support, (4) Real-time API validation implementation, (5) Dynamic script architecture with variable parameters, (6) MLB.com integration where applicable, (7) Proper error handling with metadata-driven suggestions.
+All code reviews MUST verify: (1) MLB-StatsAPI reference compliance, (2) MLB metadata usage for parameter validation, (3) Comprehensive game type support, (4) Real-time API validation implementation, (5) Dynamic script architecture with variable parameters, (6) Existing functionality verification before new file creation, (7) MLB.com integration where applicable, (8) Proper error handling with metadata-driven suggestions.
 
 Complexity that violates these principles MUST be justified with specific technical requirements that cannot be met through MLB API metadata. Simple solutions using MLB API metadata are always preferred over complex custom implementations.
 
-**Version**: 2.1.0 | **Ratified**: 2025-10-12 | **Last Amended**: 2025-10-12
+**Version**: 2.2.0 | **Ratified**: 2025-10-12 | **Last Amended**: 2025-10-12
