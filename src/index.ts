@@ -294,17 +294,19 @@ server.registerTool(
 );
 
 /**
- * Tool: Get player statistics
+ * Tool: Get player statistics with dynamic stat types
+ * Constitutional Compliance: Dynamic API-First Development
  */
 server.registerTool(
   'get-player-stats',
   {
     title: 'Get Player Statistics',
-    description: 'Get statistics for an MLB player',
+    description: 'Get statistics for an MLB player with configurable stat types',
     inputSchema: {
       playerId: z.number().describe('MLB Player ID'),
       season: z.number().optional().describe('Season year (defaults to current year)'),
-      gameType: gameTypeSchema
+      gameType: gameTypeSchema,
+      stats: z.string().optional().describe('Stat type: season, career, gameLog, advanced, seasonAdvanced, careerAdvanced, byMonth, homeAndAway, statSplits, vsPlayer, lastXGames, etc. (defaults to season)')
     },
     outputSchema: {
       player: z.object({
@@ -327,9 +329,9 @@ server.registerTool(
       }))
     }
   },
-  async ({ playerId, season, gameType = 'R' }) => {
+  async ({ playerId, season, gameType = 'R', stats = 'season' }) => {
     try {
-      const playerStats = await mlbClient.getPlayerStats(playerId, season, gameType);
+      const playerStats = await mlbClient.getPlayerStats(playerId, season, gameType, stats);
 
       return {
         content: [{

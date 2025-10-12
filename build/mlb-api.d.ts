@@ -93,9 +93,12 @@ export declare class MLBAPIClient {
      */
     getTeamRoster(teamId: number, season?: number): Promise<any>;
     /**
-     * Get player statistics
+     * Get player statistics with dynamic stat types
+     * Constitutional Compliance: Dynamic API-First Development - supports various stat types
+     * Available stat types: season, career, gameLog, advanced, seasonAdvanced, careerAdvanced,
+     * byMonth, homeAndAway, statSplits, vsPlayer, lastXGames, etc.
      */
-    getPlayerStats(playerId: number, season?: number, gameType?: string): Promise<MLBPlayerStats>;
+    getPlayerStats(playerId: number, season?: number, gameType?: string, stats?: string): Promise<MLBPlayerStats>;
     /**
      * Get game schedule
      */
@@ -110,6 +113,8 @@ export declare class MLBAPIClient {
     getLiveGame(gamePk: number): Promise<any>;
     /**
      * Search for players by name
+     * Uses MLB-StatsAPI reference architecture: sports_players endpoint with client-side filtering
+     * Constitutional Compliance: Dynamic API-First Development using verified MLB-StatsAPI patterns
      */
     searchPlayers(name: string, activeStatus?: string): Promise<any>;
     /**
@@ -134,6 +139,7 @@ export declare class MLBAPIClient {
     getScheduleWithGamePks(params: MLBScheduleParams): Promise<any>;
     /**
      * Look up players by name, position, team, etc.
+     * Constitutional Compliance: Uses MLB-StatsAPI reference architecture patterns
      */
     lookupPlayer(searchTerm: string, gameType?: string, season?: number, sportId?: number): Promise<any[]>;
     /**

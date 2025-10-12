@@ -48,6 +48,7 @@ description: "Task list template for feature implementation"
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+- [ ] T004 [P] Setup MLB API metadata validation framework
 
 ---
 
@@ -59,12 +60,18 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T005 [P] Research MLB-StatsAPI patterns and endpoints documentation
+- [ ] T006 [P] Implement MLB metadata discovery service (get-mlb-meta integration)
+- [ ] T007 [P] Setup dynamic parameter validation using MLB API metadata
+- [ ] T008 [P] Configure comprehensive game type support framework
+- [ ] T009 [P] Setup real-time API validation infrastructure
+- [ ] T010 [P] Implement MLB.com integration service for official links
+- [ ] T011 Create base MLB API client with metadata-driven validation following MLB-StatsAPI patterns
+- [ ] T012 Configure error handling with metadata-driven suggestions
+- [ ] T013 Setup environment configuration for MLB API endpoints
+- [ ] T014 [P] Establish dynamic script naming conventions (no single-use file names)
+
+**Constitution Compliance Checkpoint**: All tools MUST follow MLB-StatsAPI patterns, use MLB metadata for parameter validation, support all game types, use dynamic script architecture, and include MLB.com integration where applicable.
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

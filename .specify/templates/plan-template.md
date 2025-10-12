@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Dynamic API-First Development**: ✅ Feature MUST use MLB API endpoints dynamically with metadata validation
+**MLB Metadata-Driven Architecture**: ✅ Feature MUST query /meta endpoints for parameter validation  
+**Comprehensive Game Type Support**: ✅ Feature MUST support all MLB game types (R, S, P, W, D, L, WC, E, A, F, I)
+**Real-time API Validation**: ✅ Feature MUST validate inputs against live MLB API data
+**MLB-StatsAPI Reference Architecture**: ✅ Feature MUST reference MLB-StatsAPI patterns and endpoints wiki
+**Dynamic Script Architecture**: ✅ Scripts MUST accept variable parameters, no single-use file names
+**Official MLB.com Integration**: ✅ Feature MUST provide MLB.com links where applicable
+
+*Any violations require explicit justification in Complexity Tracking section*
 
 ## Project Structure
 

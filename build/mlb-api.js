@@ -111,12 +111,15 @@ export class MLBAPIClient {
         return data;
     }
     /**
-     * Get player statistics
+     * Get player statistics with dynamic stat types
+     * Constitutional Compliance: Dynamic API-First Development - supports various stat types
+     * Available stat types: season, career, gameLog, advanced, seasonAdvanced, careerAdvanced,
+     * byMonth, homeAndAway, statSplits, vsPlayer, lastXGames, etc.
      */
-    async getPlayerStats(playerId, season, gameType = 'R') {
+    async getPlayerStats(playerId, season, gameType = 'R', stats = 'season') {
         const currentYear = new Date().getFullYear();
         const params = {
-            stats: 'season',
+            stats,
             season: season || currentYear,
             gameType
         };
@@ -231,12 +234,31 @@ export class MLBAPIClient {
     }
     /**
      * Search for players by name
+     * Uses MLB-StatsAPI reference architecture: sports_players endpoint with client-side filtering
+     * Constitutional Compliance: Dynamic API-First Development using verified MLB-StatsAPI patterns
      */
     async searchPlayers(name, activeStatus = 'Y') {
+        const currentYear = new Date().getFullYear();
         const params = {
-            q: name
+            sportId: 1,
+            season: currentYear,
+            fields: 'people,id,fullName,firstName,lastName,primaryNumber,currentTeam,id,primaryPosition,code,abbreviation,useName,boxscoreName,nickName,mlbDebutDate,nameFirstLast,firstLastName,lastFirstName,lastInitName,initLastName,fullFMLName,fullLFMName,nameSlug'
         };
-        return this.makeRequest('/people/search', params);
+        const data = await this.makeRequest('/sports/1/players', params);
+        if (!data.people) {
+            return { people: [] };
+        }
+        // Client-side filtering based on MLB-StatsAPI lookup_player implementation
+        const searchTerms = name.toLowerCase().split(' ');
+        const filteredPlayers = data.people.filter((player) => {
+            // Check if all search terms match any player field values
+            return searchTerms.every(term => {
+                return Object.values(player).some(value => {
+                    return value && value.toString().toLowerCase().includes(term);
+                });
+            });
+        });
+        return { people: filteredPlayers };
     }
     /**
      * Get all MLB teams
@@ -336,14 +358,33 @@ export class MLBAPIClient {
     }
     /**
      * Look up players by name, position, team, etc.
+     * Constitutional Compliance: Uses MLB-StatsAPI reference architecture patterns
      */
     async lookupPlayer(searchTerm, gameType = 'R', season, sportId = 1) {
-        // Use the same endpoint as searchPlayers but with more comprehensive return data
+        const currentYear = new Date().getFullYear();
+        const useSeason = season || currentYear;
         const params = {
-            q: searchTerm
+            sportId,
+            season: useSeason,
+            fields: 'people,id,fullName,firstName,lastName,primaryNumber,currentTeam,id,primaryPosition,code,abbreviation,useName,boxscoreName,nickName,mlbDebutDate,birthDate,birthCity,birthCountry,height,weight,active,nameFirstLast,firstLastName'
         };
-        const data = await this.makeRequest('/people/search', params);
+        if (gameType !== 'R') {
+            params.gameType = gameType;
+        }
+        const data = await this.makeRequest(`/sports/${sportId}/players`, params);
         if (!data.people || data.people.length === 0) {
+            return [];
+        }
+        // Client-side filtering using MLB-StatsAPI lookup_player logic
+        const searchTerms = searchTerm.toLowerCase().split(' ');
+        const matchedPlayers = data.people.filter((player) => {
+            return searchTerms.every(term => {
+                return Object.values(player).some(value => {
+                    return value && value.toString().toLowerCase().includes(term);
+                });
+            });
+        });
+        if (matchedPlayers.length === 0) {
             throw new Error(`No players found matching "${searchTerm}"`);
         }
         return data.people.map((player) => ({

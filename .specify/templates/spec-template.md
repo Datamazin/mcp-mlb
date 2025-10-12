@@ -90,6 +90,15 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
+*Constitution-aligned requirements (include when applicable):*
+
+- **FR-MLB-01**: System MUST reference MLB-StatsAPI patterns (https://github.com/toddrob99/MLB-StatsAPI/wiki/Endpoints)
+- **FR-MLB-02**: System MUST use MLB API metadata endpoints for parameter validation
+- **FR-MLB-03**: System MUST support all MLB game types (R, S, P, W, D, L, WC, E, A, F, I) with R as default
+- **FR-MLB-04**: System MUST validate inputs against live MLB API data before processing
+- **FR-MLB-05**: Scripts MUST accept dynamic parameters, no single-use implementations
+- **FR-MLB-06**: System MUST provide MLB.com official links for enhanced data features
+
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
