@@ -400,16 +400,38 @@ server.registerTool(
   },
   async ({ startDate, endDate, teamId, gameType = 'R' }) => {
     try {
-      const schedule = await mlbClient.getSchedule({
-        startDate,
-        endDate: endDate || startDate,
-        teamId,
-        gameType
-      });
+      let schedule;
+      
+      // Use postseason endpoint for playoff game types
+      const playoffGameTypes = ['P', 'D', 'L', 'W', 'WC'];
+      if (playoffGameTypes.includes(gameType)) {
+        // Extract season from startDate
+        const season = new Date(startDate).getFullYear();
+        schedule = await mlbClient.getPostseasonSchedule(season);
+        
+        // Filter by date range if specified
+        if (schedule.dates) {
+          const start = new Date(startDate);
+          const end = new Date(endDate || startDate);
+          
+          schedule.dates = schedule.dates.filter((dateData: any) => {
+            const gameDate = new Date(dateData.date);
+            return gameDate >= start && gameDate <= end;
+          });
+        }
+      } else {
+        // Use regular schedule endpoint
+        schedule = await mlbClient.getSchedule({
+          startDate,
+          endDate: endDate || startDate,
+          teamId,
+          gameType
+        });
+      }
 
       const output = {
-        totalGames: schedule.totalItems,
-        games: schedule.dates.flatMap((date: any) => date.games)
+        totalGames: schedule.totalItems || schedule.dates?.reduce((total: number, date: any) => total + (date.games?.length || 0), 0) || 0,
+        games: schedule.dates?.flatMap((date: any) => date.games) || []
       };
 
       return {
@@ -1606,6 +1628,143 @@ server.registerTool(
         content: [{
           type: 'text' as const,
           text: `Error fetching enhanced team info: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+/**
+ * Tool: Get postseason schedule using dedicated MLB postseason endpoint
+ */
+server.registerTool(
+  'get-postseason-schedule',
+  {
+    title: 'Get Postseason Schedule',
+    description: 'Get MLB postseason/playoff schedule using the dedicated postseason API endpoint with detailed game information',
+    inputSchema: {
+      season: z.number().optional().describe('Season year (defaults to current year)'),
+      series: z.string().optional().describe('Specific playoff series (WS=World Series, ALCS/NLCS=Championship Series, ALDS/NLDS=Division Series, WC=Wild Card)')
+    },
+    outputSchema: {
+      postseasonData: z.object({
+        season: z.number(),
+        totalGames: z.number(),
+        series: z.array(z.object({
+          seriesCode: z.string(),
+          seriesName: z.string(),
+          games: z.array(z.object({
+            gamePk: z.number(),
+            gameDate: z.string(),
+            status: z.object({
+              abstractGameState: z.string(),
+              detailedState: z.string()
+            }),
+            teams: z.object({
+              away: z.object({
+                team: z.object({
+                  id: z.number(),
+                  name: z.string()
+                }),
+                score: z.number().optional()
+              }),
+              home: z.object({
+                team: z.object({
+                  id: z.number(),
+                  name: z.string()
+                }),
+                score: z.number().optional()
+              })
+            }),
+            venue: z.object({
+              name: z.string()
+            }).optional()
+          }))
+        }))
+      })
+    }
+  },
+  async ({ season, series }) => {
+    try {
+      const postseasonData = await mlbClient.getPostseasonSchedule(season, series);
+      
+      // Process the postseason data
+      const processedData = {
+        season: season || new Date().getFullYear(),
+        totalGames: 0,
+        series: [] as any[]
+      };
+
+      // Handle the API response structure
+      if (postseasonData.dates) {
+        let totalGames = 0;
+        const seriesMap = new Map();
+
+        postseasonData.dates.forEach((dateData: any) => {
+          dateData.games?.forEach((game: any) => {
+            totalGames++;
+            
+            const seriesCode = game.seriesGameNumber ? 
+              `${game.teams?.away?.team?.abbreviation || 'TBD'}_vs_${game.teams?.home?.team?.abbreviation || 'TBD'}` : 
+              'Regular';
+              
+            if (!seriesMap.has(seriesCode)) {
+              seriesMap.set(seriesCode, {
+                seriesCode,
+                seriesName: game.description || `${game.teams?.away?.team?.name || 'TBD'} vs ${game.teams?.home?.team?.name || 'TBD'}`,
+                games: []
+              });
+            }
+
+            seriesMap.get(seriesCode).games.push({
+              gamePk: game.gamePk,
+              gameDate: game.gameDate,
+              status: {
+                abstractGameState: game.status?.abstractGameState || 'Unknown',
+                detailedState: game.status?.detailedState || 'Unknown'
+              },
+              teams: {
+                away: {
+                  team: {
+                    id: game.teams?.away?.team?.id || 0,
+                    name: game.teams?.away?.team?.name || 'TBD'
+                  },
+                  score: game.teams?.away?.score
+                },
+                home: {
+                  team: {
+                    id: game.teams?.home?.team?.id || 0,
+                    name: game.teams?.home?.team?.name || 'TBD'
+                  },
+                  score: game.teams?.home?.score
+                }
+              },
+              venue: game.venue ? {
+                name: game.venue.name
+              } : undefined
+            });
+          });
+        });
+
+        processedData.totalGames = totalGames;
+        processedData.series = Array.from(seriesMap.values());
+      }
+
+      const output = { postseasonData: processedData };
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(output, null, 2)
+        }],
+        structuredContent: output
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error fetching postseason schedule: ${errorMessage}`
         }],
         isError: true
       };

@@ -273,6 +273,20 @@ export class MLBAPIClient {
   }
 
   /**
+   * Get postseason schedule using dedicated postseason endpoint
+   */
+  async getPostseasonSchedule(season?: number, series?: string): Promise<any> {
+    const queryParams: Record<string, any> = {
+      hydrate: 'team,linescore,venue,decisions,person'
+    };
+
+    if (season) queryParams.season = season;
+    if (series) queryParams.series = series; // e.g., 'WS', 'ALCS', 'NLDS', 'WC'
+
+    return this.makeRequest('/schedule/postseason', queryParams);
+  }
+
+  /**
    * Get live game data
    */
   async getLiveGame(gamePk: number): Promise<any> {

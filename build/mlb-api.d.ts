@@ -97,6 +97,10 @@ export declare class MLBAPIClient {
      */
     getSchedule(params: MLBScheduleParams): Promise<any>;
     /**
+     * Get postseason schedule using dedicated postseason endpoint
+     */
+    getPostseasonSchedule(season?: number, series?: string): Promise<any>;
+    /**
      * Get live game data
      */
     getLiveGame(gamePk: number): Promise<any>;

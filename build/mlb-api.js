@@ -171,6 +171,19 @@ export class MLBAPIClient {
         return this.makeRequest('/schedule', queryParams);
     }
     /**
+     * Get postseason schedule using dedicated postseason endpoint
+     */
+    async getPostseasonSchedule(season, series) {
+        const queryParams = {
+            hydrate: 'team,linescore,venue,decisions,person'
+        };
+        if (season)
+            queryParams.season = season;
+        if (series)
+            queryParams.series = series; // e.g., 'WS', 'ALCS', 'NLDS', 'WC'
+        return this.makeRequest('/schedule/postseason', queryParams);
+    }
+    /**
      * Get live game data
      */
     async getLiveGame(gamePk) {

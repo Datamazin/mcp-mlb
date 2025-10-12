@@ -4,12 +4,13 @@ A comprehensive Model Context Protocol (MCP) server that provides access to Majo
 
 ## 🌟 Features
 
-### 📊 **Core Data Access (15+ Tools)**
+### 📊 **Core Data Access (16+ Tools)**
 - **Historical Team Rosters** (1970s-present)
 - **Player Statistics** (career, season, game-by-game) - **All Game Types**
 - **Live Game Data** (scores, innings, play-by-play)
 - **League Standings** (division, wild card, historical) - **All Game Types**
 - **Game Schedules** (past, present, future) - **All Game Types**
+- **Postseason Schedule** (dedicated MLB postseason API endpoint) - **NEW**
 - **Statistical Leaders** (home runs, batting average, ERA, etc.)
 - **Advanced Analytics** (box scores, game logs) - **All Game Types**
 - **Data Visualization** (Chart.js integration with PNG export) - **All Game Types**
@@ -51,16 +52,23 @@ The server now supports comprehensive game type filtering across all tools:
 
 ## 🎮 Game Type Usage Examples
 
-### Playoff Data Access
+### Playoff Data Access (Enhanced with Dedicated Postseason Endpoint)
 ```javascript
+// Get complete postseason schedule using dedicated MLB postseason API
+get-postseason-schedule(season: 2025)
+
+// Get specific playoff series (World Series, Championship Series, etc.)
+get-postseason-schedule(season: 2025, series: "WS")  // World Series
+get-postseason-schedule(season: 2025, series: "ALCS") // AL Championship Series
+
+// Get playoff schedule (now automatically uses postseason endpoint)
+get-schedule(startDate: "2024-10-01", gameType: "P")
+
 // Get World Series standings
 get-standings(season: 2024, gameType: "W")
 
 // Get Division Series player stats
 get-player-stats(playerId: 592450, season: 2024, gameType: "D")
-
-// Get playoff schedule
-get-schedule(startDate: "2024-10-01", gameType: "P")
 ```
 
 ### Spring Training Analysis
@@ -172,6 +180,11 @@ node build/index.js
 13. **`get-schedule-with-games`** - Enhanced schedule data
     - Game PKs for boxscore retrieval
     - Complete game metadata
+
+14. **`get-postseason-schedule`** - Dedicated postseason schedule (NEW)
+    - Uses MLB's official postseason API endpoint
+    - Complete playoff bracket and series information
+    - Automatic playoff game detection and routing
 
 ### MLB.com Integration Tools (NEW)
 
