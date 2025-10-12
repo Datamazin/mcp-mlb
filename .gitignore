@@ -154,9 +154,9 @@ config/production.json
 secrets.json
 
 # Ignore large dataset files if any
-data/check
-data/static
-data/test
+data/check/
+data/static/
+data/test/
 data/raw-data/
 data/cache/
 data/temp/
