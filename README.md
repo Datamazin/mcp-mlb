@@ -4,15 +4,38 @@ A comprehensive Model Context Protocol (MCP) server that provides access to Majo
 
 ## 🌟 Features
 
-### 📊 **Core Data Access (15 Tools)**
+### 📊 **Core Data Access (15+ Tools)**
 - **Historical Team Rosters** (1970s-present)
-- **Player Statistics** (career, season, game-by-game)
+- **Player Statistics** (career, season, game-by-game) - **All Game Types**
 - **Live Game Data** (scores, innings, play-by-play)
-- **League Standings** (division, wild card, historical)
-- **Game Schedules** (past, present, future)
+- **League Standings** (division, wild card, historical) - **All Game Types**
+- **Game Schedules** (past, present, future) - **All Game Types**
 - **Statistical Leaders** (home runs, batting average, ERA, etc.)
-- **Advanced Analytics** (box scores, game logs)
-- **Data Visualization** (Chart.js integration with PNG export)
+- **Advanced Analytics** (box scores, game logs) - **All Game Types**
+- **Data Visualization** (Chart.js integration with PNG export) - **All Game Types**
+
+### 🎯 **Dynamic Game Type Support (NEW)**
+The server now supports comprehensive game type filtering across all tools:
+
+**Regular Season & Exhibition:**
+- `R` - Regular Season (default)
+- `E` - Exhibition Games
+- `S` - Spring Training
+- `F` - Fall League
+- `A` - All-Star Game
+- `I` - Intrasquad Games
+
+**Postseason:**
+- `P` - Playoffs (All)
+- `D` - Division Series
+- `L` - League Championship Series  
+- `W` - World Series
+- `WC` - Wild Card Games
+
+**Special Events:**
+- `ASGHR` - All-Star Home Run Derby
+- `WBC` - World Baseball Classic
+- `CWS` - College World Series
 
 ### 🌐 **MLB.com Integration (NEW)**
 - **Official MLB.com Links** (teams, players, schedules, news)
@@ -25,6 +48,41 @@ A comprehensive Model Context Protocol (MCP) server that provides access to Majo
 - **Multiple Chart Types** (line charts, bar charts)
 - **File Export** (PNG format to `data/visualizations/`)
 - **Statistical Summaries** (min, max, average, total)
+
+## 🎮 Game Type Usage Examples
+
+### Playoff Data Access
+```javascript
+// Get World Series standings
+get-standings(season: 2024, gameType: "W")
+
+// Get Division Series player stats
+get-player-stats(playerId: 592450, season: 2024, gameType: "D")
+
+// Get playoff schedule
+get-schedule(startDate: "2024-10-01", gameType: "P")
+```
+
+### Spring Training Analysis
+```javascript
+// Get Spring Training standings
+get-standings(season: 2024, gameType: "S", standingsType: "springTraining")
+
+// Get player Spring Training stats
+get-player-stats(playerId: 592450, season: 2024, gameType: "S")
+
+// Visualize Spring Training performance
+visualize-player-stats(playerId: 592450, season: 2024, gameType: "S", statCategory: "homeRuns")
+```
+
+### Historical Analysis
+```javascript
+// Get World Series game logs for a player
+get-player-game-logs(playerId: 592450, season: 2024, gameType: "W")
+
+// Search for players in specific game contexts
+search-players(searchTerm: "pitcher", gameType: "P", season: 2024)
+```
 
 ## 🛠️ Installation
 

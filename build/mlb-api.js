@@ -42,6 +42,8 @@ export class MLBAPIClient {
             queryParams.divisionId = params.divisionId;
         if (params.season)
             queryParams.season = params.season;
+        if (params.gameType)
+            queryParams.gameType = params.gameType;
         const data = await this.makeRequest('/standings', queryParams);
         const standings = [];
         data.records?.forEach((record) => {

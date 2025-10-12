@@ -67,6 +67,7 @@ export interface MLBStandingsParams {
     divisionId?: number;
     standingsType?: string;
     season?: number;
+    gameType?: string;
 }
 export declare class MLBAPIClient {
     private baseUrl;

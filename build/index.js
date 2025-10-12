@@ -25,6 +25,30 @@ import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import fs from 'fs';
 import path from 'path';
 const MLB_API_BASE = 'https://statsapi.mlb.com/api/v1';
+// Game Type Constants - Comprehensive MLB Game Type Support
+const GAME_TYPES = {
+    // Regular Season
+    'R': 'Regular Season',
+    'E': 'Exhibition',
+    'S': 'Spring Training',
+    'F': 'Fall League',
+    'A': 'All-Star Game',
+    'I': 'Intrasquad',
+    // Postseason
+    'P': 'Playoffs (All)',
+    'D': 'Division Series',
+    'L': 'League Championship',
+    'W': 'World Series',
+    'WC': 'Wild Card',
+    // Special Games
+    'ASGHR': 'All-Star Home Run Derby',
+    'WBC': 'World Baseball Classic',
+    'CWS': 'College World Series'
+};
+// Game Type Schema for consistent validation
+const gameTypeSchema = z.enum(['R', 'E', 'S', 'F', 'A', 'I', 'P', 'D', 'L', 'W', 'WC', 'ASGHR', 'WBC', 'CWS'])
+    .default('R')
+    .describe(`Game type: ${Object.entries(GAME_TYPES).map(([key, value]) => `${key}=${value}`).join(', ')}`);
 // Create the MCP server
 const server = new McpServer({
     name: 'mcp-mlb-server',
@@ -124,12 +148,13 @@ server.registerTool('get-team-roster', {
  */
 server.registerTool('get-standings', {
     title: 'Get MLB Standings',
-    description: 'Get current MLB standings by league or division',
+    description: 'Get current MLB standings by league or division with support for all game types including playoffs',
     inputSchema: {
         leagueId: z.number().optional().describe('League ID (103=AL, 104=NL)'),
         divisionId: z.number().optional().describe('Division ID (200=AL West, 201=AL East, 202=AL Central, 203=NL West, 204=NL East, 205=NL Central)'),
-        standingsType: z.string().default('regularSeason').describe('Type of standings (regularSeason, springTraining, firstHalf, secondHalf)'),
-        season: z.number().optional().describe('Season year (defaults to current year)')
+        standingsType: z.string().default('regularSeason').describe('Type of standings (regularSeason, springTraining, firstHalf, secondHalf, wildCard, divisionLeaders)'),
+        season: z.number().optional().describe('Season year (defaults to current year)'),
+        gameType: gameTypeSchema.describe('Game type for standings context (affects which games are included)')
     },
     outputSchema: {
         standings: z.array(z.object({
@@ -142,13 +167,14 @@ server.registerTool('get-standings', {
             league: z.string()
         }))
     }
-}, async ({ leagueId, divisionId, standingsType = 'regularSeason', season }) => {
+}, async ({ leagueId, divisionId, standingsType = 'regularSeason', season, gameType = 'R' }) => {
     try {
         const standings = await mlbClient.getStandings({
             leagueId,
             divisionId,
             standingsType,
-            season
+            season,
+            gameType
         });
         const output = { standings };
         return {
@@ -232,7 +258,7 @@ server.registerTool('get-player-stats', {
     inputSchema: {
         playerId: z.number().describe('MLB Player ID'),
         season: z.number().optional().describe('Season year (defaults to current year)'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, D=Division, W=Wild Card, L=League Championship, W=World Series)')
+        gameType: gameTypeSchema
     },
     outputSchema: {
         player: z.object({
@@ -281,12 +307,12 @@ server.registerTool('get-player-stats', {
  */
 server.registerTool('get-schedule', {
     title: 'Get Game Schedule',
-    description: 'Get MLB game schedule for a specific date range',
+    description: 'Get MLB game schedule for a specific date range with support for all game types',
     inputSchema: {
         startDate: z.string().describe('Start date (YYYY-MM-DD format)'),
         endDate: z.string().optional().describe('End date (YYYY-MM-DD format, defaults to startDate)'),
         teamId: z.number().optional().describe('Filter by specific team ID'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+        gameType: gameTypeSchema
     },
     outputSchema: {
         totalGames: z.number(),
@@ -537,7 +563,7 @@ server.registerTool('get-player-game-logs', {
     inputSchema: {
         playerId: z.number().describe('MLB Player ID'),
         season: z.number().optional().describe('Season year (defaults to current year)'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+        gameType: gameTypeSchema
     },
     outputSchema: {
         player: z.object({
@@ -601,12 +627,12 @@ server.registerTool('get-player-game-logs', {
  */
 server.registerTool('get-schedule-with-games', {
     title: 'Get Schedule with Game Details',
-    description: 'Get MLB game schedule with game PKs for box score retrieval',
+    description: 'Get MLB game schedule with game PKs for box score retrieval with support for all game types',
     inputSchema: {
         startDate: z.string().describe('Start date (YYYY-MM-DD format)'),
         endDate: z.string().optional().describe('End date (YYYY-MM-DD format, defaults to startDate)'),
         teamId: z.number().optional().describe('Filter by specific team ID'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, F=Fall, etc.)')
+        gameType: gameTypeSchema
     },
     outputSchema: {
         totalGames: z.number(),
@@ -673,7 +699,7 @@ server.registerTool('visualize-player-stats', {
     inputSchema: {
         playerId: z.number().describe('MLB Player ID'),
         season: z.number().describe('Season year'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, P=Playoffs, D=Division, L=League Championship, W=World Series)'),
+        gameType: gameTypeSchema,
         statCategory: z.enum(['hits', 'runs', 'rbi', 'homeRuns', 'doubles', 'triples', 'strikeOuts', 'baseOnBalls', 'atBats', 'avg']).describe('Statistical category to visualize'),
         chartType: z.enum(['line', 'bar']).default('line').describe('Type of chart (line or bar)'),
         title: z.string().optional().describe('Custom chart title'),
@@ -904,7 +930,7 @@ server.registerTool('lookup-player', {
     description: 'Search for players by name, position, team, or other criteria',
     inputSchema: {
         searchTerm: z.string().describe('Player name or search criteria (e.g., "harper", "nola,", "yankees pitcher")'),
-        gameType: z.string().default('R').describe('Game type (R=Regular, S=Spring, P=Playoffs)'),
+        gameType: gameTypeSchema,
         season: z.number().optional().describe('Season year (defaults to current year)'),
         sportId: z.number().default(1).describe('Sport ID (1=MLB)')
     }

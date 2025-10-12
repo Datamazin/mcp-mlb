@@ -75,6 +75,7 @@ export interface MLBStandingsParams {
   divisionId?: number;
   standingsType?: string;
   season?: number;
+  gameType?: string;
 }
 
 export class MLBAPIClient {
@@ -119,6 +120,7 @@ export class MLBAPIClient {
     if (params.leagueId) queryParams.leagueId = params.leagueId;
     if (params.divisionId) queryParams.divisionId = params.divisionId;
     if (params.season) queryParams.season = params.season;
+    if (params.gameType) queryParams.gameType = params.gameType;
 
     const data = await this.makeRequest('/standings', queryParams);
     
