@@ -29,7 +29,7 @@ import type { ChartConfiguration } from 'chart.js';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { Octokit } from '@octokit/rest';
+
 
 const MLB_API_BASE = 'https://statsapi.mlb.com/api/v1';
 
