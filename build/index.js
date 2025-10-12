@@ -1012,17 +1012,18 @@ server.registerTool('lookup-team', {
     }
 });
 /**
- * Tool: Get detailed game boxscore
+ * Tool: Get detailed game boxscore with enhanced batting statistics
  */
 server.registerTool('get-boxscore', {
     title: 'Get Game Boxscore',
-    description: 'Get detailed boxscore data for a specific game',
+    description: 'Get detailed boxscore data for a specific game including comprehensive batting, pitching, and fielding statistics',
     inputSchema: {
-        gamePk: z.number().describe('Game primary key (unique MLB game ID)')
+        gamePk: z.number().describe('Game primary key (unique MLB game ID)'),
+        timecode: z.string().optional().describe('Specific time code to get boxscore at particular moment (format: YYYYMMDD_HHMMSS)')
     }
-}, async ({ gamePk }) => {
+}, async ({ gamePk, timecode }) => {
     try {
-        const boxscore = await mlbClient.getBoxscore(gamePk);
+        const boxscore = await mlbClient.getBoxscore(gamePk, timecode);
         return {
             content: [{
                     type: 'text',
@@ -1539,6 +1540,106 @@ server.registerTool('get-postseason-schedule', {
             content: [{
                     type: 'text',
                     text: `Error fetching postseason schedule: ${errorMessage}`
+                }],
+            isError: true
+        };
+    }
+});
+/**
+ * Tool: Get MLB jobs information
+ */
+server.registerTool('get-mlb-jobs', {
+    title: 'Get MLB Jobs',
+    description: 'Get information about MLB jobs, personnel, and staff positions (umpires, managers, coaches, trainers, etc.)',
+    inputSchema: {
+        jobType: z.string().describe('Type of job to query (e.g., "umpire", "manager", "coach", "trainer", "scout", "front-office")'),
+        sportId: z.number().default(1).describe('Sport ID (1=MLB)'),
+        date: z.string().optional().describe('Specific date for jobs (YYYY-MM-DD format)')
+    },
+    outputSchema: {
+        jobsData: z.object({
+            jobType: z.string(),
+            totalJobs: z.number(),
+            jobs: z.array(z.object({
+                id: z.number(),
+                title: z.string(),
+                jobType: z.string(),
+                person: z.object({
+                    id: z.number(),
+                    fullName: z.string(),
+                    firstName: z.string(),
+                    lastName: z.string()
+                }).optional(),
+                team: z.object({
+                    id: z.number(),
+                    name: z.string(),
+                    abbreviation: z.string()
+                }).optional(),
+                startDate: z.string().optional(),
+                endDate: z.string().optional(),
+                isActive: z.boolean().optional()
+            }))
+        })
+    }
+}, async ({ jobType, sportId = 1, date }) => {
+    try {
+        const jobsData = await mlbClient.getJobs(jobType, sportId, date);
+        const output = { jobsData };
+        return {
+            content: [{
+                    type: 'text',
+                    text: JSON.stringify(output, null, 2)
+                }],
+            structuredContent: output
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        return {
+            content: [{
+                    type: 'text',
+                    text: `Error fetching MLB jobs: ${errorMessage}`
+                }],
+            isError: true
+        };
+    }
+});
+/**
+ * Tool: Get MLB metadata
+ */
+server.registerTool('get-mlb-meta', {
+    title: 'Get MLB Metadata',
+    description: 'Get MLB metadata for various types including awards, gameTypes, jobTypes, positions, and more',
+    inputSchema: {
+        type: z.string().describe('Type of metadata to retrieve (awards, baseballStats, eventTypes, gameStatus, gameTypes, hitTrajectories, jobTypes, languages, leagueLeaderTypes, logicalEvents, metrics, pitchCodes, pitchTypes, platforms, positions, reviewReasons, rosterTypes, scheduleEventTypes, situationCodes, sky, standingsTypes, statGroups, statTypes, windDirection)'),
+        ver: z.string().default('v1').describe('API version (default: v1)')
+    },
+    outputSchema: {
+        metaData: z.object({
+            type: z.string(),
+            version: z.string(),
+            totalItems: z.number(),
+            data: z.array(z.any())
+        })
+    }
+}, async ({ type, ver = 'v1' }) => {
+    try {
+        const metaData = await mlbClient.getMeta(type, ver);
+        const output = { metaData };
+        return {
+            content: [{
+                    type: 'text',
+                    text: JSON.stringify(output, null, 2)
+                }],
+            structuredContent: output
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        return {
+            content: [{
+                    type: 'text',
+                    text: `Error fetching MLB metadata: ${errorMessage}`
                 }],
             isError: true
         };

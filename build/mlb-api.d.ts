@@ -69,6 +69,10 @@ export interface MLBStandingsParams {
     season?: number;
     gameType?: string;
 }
+export interface MLBMetaParams {
+    type: string;
+    ver?: string;
+}
 export declare class MLBAPIClient {
     private baseUrl;
     constructor(baseUrl: string);
@@ -137,9 +141,9 @@ export declare class MLBAPIClient {
      */
     lookupTeam(searchTerm: string, season?: number, sportId?: number): Promise<any[]>;
     /**
-     * Get detailed boxscore for a game
+     * Get detailed boxscore for a game with enhanced batting stats
      */
-    getBoxscore(gamePk: number): Promise<any>;
+    getBoxscore(gamePk: number, timecode?: string): Promise<any>;
     /**
      * Get game highlights
      */
@@ -148,5 +152,18 @@ export declare class MLBAPIClient {
      * Get league leaders for specified stat categories
      */
     getLeagueLeaders(leaderCategories: string, season?: number, leagueId?: number, limit?: number): Promise<any>;
+    /**
+     * Get MLB jobs information
+     * jobType examples: 'umpire', 'manager', 'coach', 'trainer', etc.
+     */
+    getJobs(jobType: string, sportId?: number, date?: string): Promise<any>;
+    /**
+     * Get MLB metadata for various types
+     * Available types: awards, baseballStats, eventTypes, gameStatus, gameTypes,
+     * hitTrajectories, jobTypes, languages, leagueLeaderTypes, logicalEvents, metrics,
+     * pitchCodes, pitchTypes, platforms, positions, reviewReasons, rosterTypes,
+     * scheduleEventTypes, situationCodes, sky, standingsTypes, statGroups, statTypes, windDirection
+     */
+    getMeta(type: string, ver?: string): Promise<any>;
 }
 //# sourceMappingURL=mlb-api.d.ts.map

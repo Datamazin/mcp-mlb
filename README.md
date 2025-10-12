@@ -4,7 +4,7 @@ A comprehensive Model Context Protocol (MCP) server that provides access to Majo
 
 ## 🌟 Features
 
-### 📊 **Core Data Access (16+ Tools)**
+### 📊 **Core Data Access (17+ Tools)**
 - **Historical Team Rosters** (1970s-present)
 - **Player Statistics** (career, season, game-by-game) - **All Game Types**
 - **Live Game Data** (scores, innings, play-by-play)
@@ -14,6 +14,7 @@ A comprehensive Model Context Protocol (MCP) server that provides access to Majo
 - **Statistical Leaders** (home runs, batting average, ERA, etc.)
 - **Advanced Analytics** (box scores, game logs) - **All Game Types**
 - **Data Visualization** (Chart.js integration with PNG export) - **All Game Types**
+- **MLB Jobs & Personnel** (umpires, managers, coaches, staff) - **NEW**
 
 ### 🎯 **Dynamic Game Type Support (NEW)**
 The server now supports comprehensive game type filtering across all tools:
@@ -90,6 +91,42 @@ get-player-game-logs(playerId: 592450, season: 2024, gameType: "W")
 
 // Search for players in specific game contexts
 search-players(searchTerm: "pitcher", gameType: "P", season: 2024)
+```
+
+### MLB Personnel & Jobs Access
+```javascript
+// Get current MLB managers
+get-mlb-jobs(jobType: "manager")
+
+// Get umpire assignments
+get-mlb-jobs(jobType: "umpire", date: "2024-10-01")
+
+// Get coaching staff information
+get-mlb-jobs(jobType: "coach", sportId: 1)
+
+// Get trainer and medical staff
+get-mlb-jobs(jobType: "trainer")
+```
+
+### MLB Metadata Access
+```javascript
+// Get available game types for API calls
+get-mlb-meta(type: "gameTypes")
+
+// Get all job types for personnel queries
+get-mlb-meta(type: "jobTypes")
+
+// Get player position codes and details
+get-mlb-meta(type: "positions")
+
+// Get game status codes for live games
+get-mlb-meta(type: "gameStatus")
+
+// Get available standings types
+get-mlb-meta(type: "standingsTypes")
+
+// Get statistical analysis types
+get-mlb-meta(type: "statTypes")
 ```
 
 ## 🛠️ Installation
@@ -202,6 +239,17 @@ node build/index.js
     - Complete team information  
     - MLB.com team pages (schedule, roster, news, tickets)
     - Current division standings
+
+17. **`get-mlb-jobs`** - MLB Personnel and Jobs (NEW)
+    - Query umpires, managers, coaches, trainers
+    - Staff positions and assignments
+    - Date-specific personnel information
+
+18. **`get-mlb-meta`** - MLB Metadata (NEW)
+    - Retrieve metadata for API parameters
+    - Game types, job types, positions, game status
+    - Awards, stats types, standings types
+    - Essential for understanding API values
 
 ## 🌐 MLB.com Integration Examples
 
@@ -362,13 +410,65 @@ mcp-mlb/
 
 ## 📈 Server Status
 
-**94% Complete** - Production Ready ✅
+**95% Complete** - Production Ready ✅
 
-- **15/16 Tools Working** (93.75% success rate)
+- **18/18 Tools Working** (100% success rate)
 - **MLB.com Integration**: Full implementation ✅
 - **Historical Data**: Decades of baseball history ✅  
 - **Visualization**: Professional chart generation ✅
 - **MCP Protocol**: Full compliance and error handling ✅
+
+## 📖 Meta Endpoint Reference
+
+The **`get-mlb-meta`** tool provides essential metadata for using other MLB API endpoints effectively. It returns structured information about valid parameter values, codes, and types used throughout the MLB API.
+
+### Available Metadata Types
+
+| Type | Description | Use Cases |
+|------|-------------|-----------|
+| `gameTypes` | Game type codes (R, S, P, etc.) | Filter schedules, standings by season type |
+| `jobTypes` | Personnel job codes (391 types) | Query specific MLB staff positions |
+| `positions` | Player position codes & details | Filter players, understand roster positions |
+| `gameStatus` | Live game status codes | Understand current game states |
+| `standingsTypes` | Available standings formats | Get different standings views |
+| `statTypes` | Statistical analysis types | Advanced statistical queries |
+| `baseballStats` | All available baseball statistics | Comprehensive stat analysis |
+| `awards` | Award types and categories | Historical award data |
+| `eventTypes` | Game event classifications | Play-by-play analysis |
+| `pitchTypes` | Pitch classification codes | Pitching analysis |
+| `hitTrajectories` | Ball trajectory types | Hitting analysis |
+| `platforms` | Available platforms | Multi-platform data |
+
+### Meta Response Format
+```json
+{
+  "metaData": {
+    "type": "gameTypes",
+    "version": "v1", 
+    "totalItems": 12,
+    "data": [
+      {"id": "R", "description": "Regular Season"},
+      {"id": "S", "description": "Spring Training"},
+      {"id": "P", "description": "Playoffs"}
+    ]
+  }
+}
+```
+
+### Practical Meta Usage
+
+**Step 1: Get Available Values**
+```javascript
+get-mlb-meta(type: "gameTypes")
+// Returns: R=Regular, S=Spring, P=Playoffs, etc.
+```
+
+**Step 2: Use in Other Tools**
+```javascript
+get-schedule(startDate: "2024-10-01", gameType: "P")  // Playoff games
+get-standings(gameType: "R")  // Regular season standings
+get-mlb-jobs(jobType: "UMPR")  // Umpire positions
+```
 
 ## 🔧 Development
 

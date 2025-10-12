@@ -401,19 +401,68 @@ export class MLBAPIClient {
         }));
     }
     /**
-     * Get detailed boxscore for a game
+     * Get detailed boxscore for a game with enhanced batting stats
      */
-    async getBoxscore(gamePk) {
-        const data = await this.makeRequest(`/game/${gamePk}/boxscore`);
+    async getBoxscore(gamePk, timecode) {
+        const params = {};
+        if (timecode)
+            params.timecode = timecode;
+        const data = await this.makeRequest(`/game/${gamePk}/boxscore`, params);
         if (!data.teams) {
             throw new Error(`No boxscore data found for game ${gamePk}`);
         }
+        // Enhanced processing for better batting stats structure
+        const processTeamBoxscore = (teamData) => {
+            const players = [];
+            // Process all players
+            if (teamData.players) {
+                for (const playerId in teamData.players) {
+                    const player = teamData.players[playerId];
+                    if (player.person) {
+                        players.push({
+                            id: player.person.id,
+                            fullName: player.person.fullName,
+                            position: player.position?.name || player.position?.abbreviation,
+                            jerseyNumber: player.jerseyNumber,
+                            battingStats: player.stats?.batting || {},
+                            pitchingStats: player.stats?.pitching || {},
+                            fieldingStats: player.stats?.fielding || {},
+                            gameStatus: player.gameStatus?.isCurrentBatter ? 'Current Batter' :
+                                player.gameStatus?.isCurrentPitcher ? 'Current Pitcher' : 'Active'
+                        });
+                    }
+                }
+            }
+            return {
+                team: teamData.team,
+                teamStats: {
+                    batting: teamData.teamStats?.batting || {},
+                    pitching: teamData.teamStats?.pitching || {},
+                    fielding: teamData.teamStats?.fielding || {}
+                },
+                players: players,
+                batters: teamData.batters || [],
+                pitchers: teamData.pitchers || [],
+                bench: teamData.bench || [],
+                bullpen: teamData.bullpen || []
+            };
+        };
         return {
             gamePk,
-            teams: data.teams,
-            officials: data.officials,
-            info: data.info,
-            pitchingNotes: data.pitchingNotes
+            gameInfo: {
+                attendance: data.info?.find((info) => info.label === 'Attendance')?.value,
+                weather: data.info?.find((info) => info.label === 'Weather')?.value,
+                wind: data.info?.find((info) => info.label === 'Wind')?.value,
+                firstPitch: data.info?.find((info) => info.label === 'First pitch')?.value,
+                timeOfGame: data.info?.find((info) => info.label === 'T')?.value
+            },
+            teams: {
+                away: processTeamBoxscore(data.teams.away),
+                home: processTeamBoxscore(data.teams.home)
+            },
+            officials: data.officials || [],
+            info: data.info || [],
+            pitchingNotes: data.pitchingNotes || []
         };
     }
     /**
@@ -464,6 +513,60 @@ export class MLBAPIClient {
                     } : null
                 }))
             }))
+        };
+    }
+    /**
+     * Get MLB jobs information
+     * jobType examples: 'umpire', 'manager', 'coach', 'trainer', etc.
+     */
+    async getJobs(jobType, sportId = 1, date) {
+        const params = {
+            jobType: jobType
+        };
+        if (sportId)
+            params.sportId = sportId;
+        if (date)
+            params.date = date; // Format: YYYY-MM-DD
+        const data = await this.makeRequest('/jobs', params);
+        return {
+            jobType: jobType,
+            totalJobs: data.totalItems || 0,
+            jobs: data.jobs?.map((job) => ({
+                id: job.id,
+                title: job.title,
+                jobType: job.jobType,
+                person: job.person ? {
+                    id: job.person.id,
+                    fullName: job.person.fullName,
+                    firstName: job.person.firstName,
+                    lastName: job.person.lastName
+                } : null,
+                team: job.team ? {
+                    id: job.team.id,
+                    name: job.team.name,
+                    abbreviation: job.team.abbreviation
+                } : null,
+                startDate: job.startDate,
+                endDate: job.endDate,
+                isActive: job.isActive
+            })) || []
+        };
+    }
+    /**
+     * Get MLB metadata for various types
+     * Available types: awards, baseballStats, eventTypes, gameStatus, gameTypes,
+     * hitTrajectories, jobTypes, languages, leagueLeaderTypes, logicalEvents, metrics,
+     * pitchCodes, pitchTypes, platforms, positions, reviewReasons, rosterTypes,
+     * scheduleEventTypes, situationCodes, sky, standingsTypes, statGroups, statTypes, windDirection
+     */
+    async getMeta(type, ver = 'v1') {
+        const endpoint = `/${ver}/${type}`;
+        const data = await this.makeRequest(endpoint);
+        return {
+            type: type,
+            version: ver,
+            totalItems: data.length || 0,
+            data: data || []
         };
     }
 }
