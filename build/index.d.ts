@@ -1,21 +1,20 @@
 #!/usr/bin/env node
 /**
- * MLB MCP Server with MLB.com Integration
+ * Multi-Sport MCP Server (MLB + NBA)
  *
- * This server provides comprehensive access to MLB data through the Model Context Protocol.
+ * This server provides comprehensive access to MLB and NBA data through the Model Context Protocol.
  * It offers tools for retrieving team information, player statistics, game schedules,
- * live scores, and historical baseball data using the MLB Stats API.
+ * live scores, and historical data using official APIs.
  *
- * Enhanced with MLB.com integration for news, player profiles, team pages,
- * schedule information, and direct links to official MLB content.
+ * Supported Leagues:
+ * - MLB (Major League Baseball) - MLB Stats API
+ * - NBA (National Basketball Association) - NBA.com Stats API
  *
  * Resources:
  * - MLB Stats API: https://statsapi.mlb.com/
  * - MLB.com Official Site: https://www.mlb.com/
- * - Team Pages: https://www.mlb.com/{team-name}/
- * - Player Profiles: https://www.mlb.com/player/{player-id}
- * - Schedule: https://www.mlb.com/schedule/
- * - News: https://www.mlb.com/news/
+ * - NBA Stats API: https://stats.nba.com/stats/
+ * - NBA.com Official Site: https://www.nba.com/
  */
 export {};
 //# sourceMappingURL=index.d.ts.map

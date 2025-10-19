@@ -1,22 +1,21 @@
 #!/usr/bin/env node
 
 /**
- * MLB MCP Server with MLB.com Integration
+ * Multi-Sport MCP Server (MLB + NBA)
  * 
- * This server provides comprehensive access to MLB data through the Model Context Protocol.
+ * This server provides comprehensive access to MLB and NBA data through the Model Context Protocol.
  * It offers tools for retrieving team information, player statistics, game schedules,
- * live scores, and historical baseball data using the MLB Stats API.
+ * live scores, and historical data using official APIs.
  * 
- * Enhanced with MLB.com integration for news, player profiles, team pages,
- * schedule information, and direct links to official MLB content.
+ * Supported Leagues:
+ * - MLB (Major League Baseball) - MLB Stats API
+ * - NBA (National Basketball Association) - NBA.com Stats API
  * 
  * Resources:
  * - MLB Stats API: https://statsapi.mlb.com/
  * - MLB.com Official Site: https://www.mlb.com/
- * - Team Pages: https://www.mlb.com/{team-name}/
- * - Player Profiles: https://www.mlb.com/player/{player-id}
- * - Schedule: https://www.mlb.com/schedule/
- * - News: https://www.mlb.com/news/
+ * - NBA Stats API: https://stats.nba.com/stats/
+ * - NBA.com Official Site: https://www.nba.com/
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -25,6 +24,8 @@ import { z } from 'zod';
 import { CallToolResult, TextContent } from '@modelcontextprotocol/sdk/types.js';
 import { MLBAPIClient } from './mlb-api.js';
 import { comparePlayers, formatComparisonResult, searchPlayerWithPrompt } from './comparison-utils.js';
+import { SportAPIFactory, League } from './api/sport-api-factory.js';
+import { ComparisonFactory } from './comparison/comparison-factory.js';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import type { ChartConfiguration } from 'chart.js';
 import fs from 'fs';
@@ -66,8 +67,8 @@ const gameTypeSchema = z.enum(['R', 'E', 'S', 'F', 'A', 'I', 'P', 'D', 'L', 'W',
 
 // Create the MCP server
 const server = new McpServer({
-  name: 'mcp-mlb-server',
-  version: '1.0.0',
+  name: 'multi-sport-mcp-server',
+  version: '2.0.0',
 });
 
 // Initialize MLB API client
@@ -531,46 +532,53 @@ server.registerTool(
 );
 
 /**
- * Tool: Search players
+ * UNIVERSAL TOOL: Search players across all sports
  */
 server.registerTool(
   'search-players',
   {
-    title: 'Search Players',
-    description: 'Search for MLB players by name',
+    title: 'Search Players (Universal)',
+    description: 'Search for players by name across MLB, NBA, or NFL',
     inputSchema: {
+      league: z.enum(['mlb', 'nba', 'nfl']).default('mlb').describe('League to search (mlb, nba, nfl)'),
       name: z.string().describe('Player name to search for'),
-      activeStatus: z.string().default('Y').describe('Player active status (Y=Active, N=Inactive)')
+      activeStatus: z.string().default('Y').describe('Player active status (Y=Active, N=Inactive) - MLB only')
     },
     outputSchema: {
+      league: z.string(),
       players: z.array(z.object({
         id: z.number(),
         fullName: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
         primaryNumber: z.string().optional(),
         currentTeam: z.object({
           id: z.number(),
           name: z.string()
         }).optional(),
         primaryPosition: z.object({
-          code: z.string(),
+          code: z.string().optional(),
           name: z.string(),
-          type: z.string()
-        }),
-        birthDate: z.string(),
-        currentAge: z.number(),
-        height: z.string(),
-        weight: z.number(),
-        active: z.boolean()
+          type: z.string().optional()
+        }).optional(),
+        birthDate: z.string().optional(),
+        currentAge: z.number().optional(),
+        height: z.string().optional(),
+        weight: z.number().optional(),
+        active: z.boolean().optional()
       }))
     }
   },
-  async ({ name, activeStatus = 'Y' }) => {
+  async ({ league = 'mlb', name, activeStatus = 'Y' }) => {
     try {
-      const searchResults = await mlbClient.searchPlayers(name, activeStatus);
+      const apiClient = SportAPIFactory.getClient(league as League);
+      const searchResults = await apiClient.searchPlayers(name, activeStatus);
 
-      const output = { players: searchResults.people || [] };
+      // MLB returns {people: [...]}
+      // NBA returns [...] directly
+      const players = (searchResults as any).people || searchResults || [];
+
+      const output = { league, players };
 
       return {
         content: [{
@@ -584,7 +592,7 @@ server.registerTool(
       return {
         content: [{
           type: 'text' as const,
-          text: `Error searching players: ${errorMessage}`
+          text: `Error searching players in ${league.toUpperCase()}: ${errorMessage}`
         }],
         isError: true
       };
@@ -593,21 +601,22 @@ server.registerTool(
 );
 
 /**
- * Tool: Compare two players
- * Enhanced comparison tool inspired by MCP server best practices
+ * UNIVERSAL TOOL: Compare two players across all sports
  */
 server.registerTool(
   'compare-players',
   {
-    title: 'Compare Two Players',
-    description: 'Compare statistics between two players for a specific season or career',
+    title: 'Compare Two Players (Universal)',
+    description: 'Compare statistics between two players in MLB, NBA, or NFL',
     inputSchema: {
-      player1Id: z.number().describe('First player\'s MLB ID'),
-      player2Id: z.number().describe('Second player\'s MLB ID'),
-      season: z.union([z.string(), z.number()]).default('career').describe('Season year or "career" for career comparison'),
-      statGroup: z.enum(['hitting', 'pitching', 'fielding']).default('hitting').describe('Type of stats to compare')
+      league: z.enum(['mlb', 'nba', 'nfl']).default('mlb').describe('League (mlb, nba, nfl)'),
+      player1Id: z.number().describe('First player\'s ID'),
+      player2Id: z.number().describe('Second player\'s ID'),
+      season: z.union([z.string(), z.number()]).default('career').describe('Season year or "career" - NBA ignores this (always career)'),
+      statGroup: z.enum(['hitting', 'pitching', 'fielding']).optional().describe('MLB only: Type of stats to compare (hitting, pitching, fielding)')
     },
     outputSchema: {
+      league: z.string(),
       player1: z.object({
         id: z.number(),
         name: z.string(),
@@ -629,18 +638,32 @@ server.registerTool(
       summary: z.string()
     }
   },
-  async ({ player1Id, player2Id, season = 'career', statGroup = 'hitting' }) => {
+  async ({ league = 'mlb', player1Id, player2Id, season = 'career', statGroup }) => {
     try {
-      const result = await comparePlayers(
-        mlbClient,
-        player1Id,
-        player2Id,
-        season,
-        statGroup
-      );
-
-      // Format as readable text
-      const formattedText = formatComparisonResult(result);
+      let result: any;
+      let formattedText: string;
+      
+      // Use factory for NBA, keep legacy for MLB
+      if (league === 'mlb') {
+        // MLB uses legacy comparison utils (backward compatibility)
+        result = await comparePlayers(
+          mlbClient,
+          player1Id,
+          player2Id,
+          season,
+          statGroup || 'hitting'
+        );
+        // Format MLB result
+        formattedText = formatComparisonResult(result);
+      } else {
+        // NBA and NFL use new comparison factory
+        const comparison = ComparisonFactory.getComparison(league as League);
+        result = await comparison.comparePlayers(player1Id, player2Id);
+        // Add league to result
+        result = { league, ...result };
+        // Format NBA/NFL result
+        formattedText = `Player Comparison (${league.toUpperCase()})\n\n` + JSON.stringify(result, null, 2);
+      }
 
       return {
         content: [{
@@ -654,7 +677,7 @@ server.registerTool(
       return {
         content: [{
           type: 'text' as const,
-          text: `Error comparing players: ${errorMessage}`
+          text: `Error comparing players in ${league.toUpperCase()}: ${errorMessage}`
         }],
         isError: true
       };
