@@ -135,33 +135,77 @@ export class MLBAPIClient extends BaseSportAPI {
   // ... other MLB-specific methods
 }
 
-// src/api/nba-api.ts (new)
+// src/api/nba-api.ts (new - uses free NBA.com Stats API)
+interface NBAPlayer {
+  id: number;
+  full_name: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+}
+
 export class NBAAPIClient extends BaseSportAPI {
-  private apiKey: string;
+  private headers = {
+    'Host': 'stats.nba.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Origin': 'https://www.nba.com',
+    'Referer': 'https://www.nba.com/'
+  };
   
-  constructor(baseUrl: string, apiKey: string) {
-    super(baseUrl);
-    this.apiKey = apiKey;
+  private playerCache: NBAPlayer[] = [];
+  private cacheLoaded = false;
+  
+  constructor(baseUrl: string) {
+    super(baseUrl);  // https://stats.nba.com/stats
+  }
+  
+  private async loadPlayerCache(): Promise<void> {
+    if (this.cacheLoaded) return;
+    
+    const response = await this.makeRequest('/commonallplayers', {
+      LeagueID: '00',
+      Season: this.getCurrentSeason(),
+      IsOnlyCurrentSeason: '0'
+    });
+    
+    this.playerCache = this.parsePlayerList(response);
+    this.cacheLoaded = true;
   }
   
   async searchPlayers(name: string, options?: NBASearchOptions): Promise<NBAPlayer[]> {
-    const { firstName, lastName, cursor } = options || {};
-    return this.makeRequest('/nba/players', {
-      first_name: firstName,
-      last_name: lastName,
-      cursor
-    });
+    await this.loadPlayerCache();
+    
+    const searchTerm = name.toLowerCase();
+    return this.playerCache.filter(p => 
+      p.full_name.toLowerCase().includes(searchTerm)
+    );
   }
   
-  async getPlayerStats(playerId: number, options?: NBAStatsOptions): Promise<NBAPlayerStats> {
-    const { season } = options || {};
-    return this.makeRequest(`/nba/stats`, {
-      player_ids: [playerId],
-      seasons: season ? [season] : undefined
+  async getPlayerStats(playerId: number, options?: NBAStatsOptions): Promise<any> {
+    const { season, perMode = 'PerGame' } = options || {};
+    
+    const response = await this.makeRequest('/playercareerstats', {
+      PlayerID: playerId.toString(),
+      PerMode: perMode
     });
+    
+    // Parse NBA.com's resultSets format
+    const seasonStats = this.parseResultSet(response, 'SeasonTotalsRegularSeason');
+    const careerStats = this.parseResultSet(response, 'CareerTotalsRegularSeason');
+    
+    if (season) {
+      return seasonStats.find((s: any) => s.SEASON_ID === season);
+    }
+    
+    return {
+      seasons: seasonStats,
+      career: careerStats[0]
+    };
   }
   
-  // Override makeRequest to add API key header
+  // Override makeRequest to add NBA.com headers
   protected async makeRequest(endpoint: string, params?: any): Promise<any> {
     const url = new URL(`${this.baseUrl}${endpoint}`);
     
@@ -174,20 +218,59 @@ export class NBAAPIClient extends BaseSportAPI {
     }
     
     const response = await fetch(url.toString(), {
-      headers: {
-        'Authorization': this.apiKey
-      }
+      headers: this.headers
     });
     
     if (!response.ok) {
       throw new SportAPIError(
-        `NBA API request failed: ${response.status}`,
+        `NBA API request failed: ${response.statusText}`,
         response.status,
         endpoint
       );
     }
     
     return response.json();
+  }
+  
+  private parseResultSet(response: any, resultSetName?: string): any[] {
+    const resultSet = resultSetName 
+      ? response.resultSets.find((rs: any) => rs.name === resultSetName)
+      : response.resultSets[0];
+      
+    if (!resultSet) return [];
+    
+    const headers = resultSet.headers;
+    const rows = resultSet.rowSet;
+    
+    return rows.map((row: any[]) => {
+      const obj: any = {};
+      headers.forEach((header: string, index: number) => {
+        obj[header] = row[index];
+      });
+      return obj;
+    });
+  }
+  
+  private parsePlayerList(response: any): NBAPlayer[] {
+    const players = this.parseResultSet(response);
+    return players.map(p => ({
+      id: p.PERSON_ID,
+      full_name: p.DISPLAY_FIRST_LAST,
+      first_name: p.DISPLAY_FIRST_LAST.split(' ')[0],
+      last_name: p.DISPLAY_FIRST_LAST.split(' ').slice(1).join(' '),
+      is_active: p.ROSTERSTATUS === 1
+    }));
+  }
+  
+  private getCurrentSeason(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    
+    // NBA season starts in October
+    return month >= 10 
+      ? `${year}-${(year + 1).toString().slice(2)}`
+      : `${year - 1}-${year.toString().slice(2)}`;
   }
 }
 
@@ -867,14 +950,15 @@ main();
 
 ### .env Structure
 ```bash
-# MLB API (no key required - public API)
+# ALL APIs ARE FREE - NO AUTHENTICATION REQUIRED!
+
+# MLB API (free, official MLB Stats API)
 MLB_API_BASE=https://statsapi.mlb.com/api/v1
 
-# NBA API (requires balldontlie.io API key)
-BALLDONTLIE_API_KEY=your_api_key_here
-BALLDONTLIE_API_BASE=https://api.balldontlie.io/v1
+# NBA API (free, official NBA.com Stats API)
+NBA_API_BASE=https://stats.nba.com/stats
 
-# NFL API (uses nflverse-data from GitHub - no key required)
+# NFL API (free, nflverse-data from GitHub)
 NFL_DATA_BASE=https://github.com/nflverse/nflverse-data/releases/download/
 ```
 
@@ -896,15 +980,9 @@ export class Config {
   }
   
   static getNBAConfig(): SportConfig {
-    const apiKey = process.env.BALLDONTLIE_API_KEY;
-    if (!apiKey) {
-      throw new Error('BALLDONTLIE_API_KEY environment variable is required for NBA');
-    }
-    
     return {
-      baseUrl: process.env.BALLDONTLIE_API_BASE || 'https://api.balldontlie.io/v1',
-      requiresAuth: true,
-      apiKey
+      baseUrl: process.env.NBA_API_BASE || 'https://stats.nba.com/stats',
+      requiresAuth: false
     };
   }
   

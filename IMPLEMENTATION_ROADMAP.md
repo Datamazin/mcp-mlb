@@ -10,10 +10,11 @@ This roadmap outlines the step-by-step process to extend your MLB MCP Server to 
 ### 1. API Access
 - ✅ **MLB API**: Already working (free, no key required)
   - Base URL: `https://statsapi.mlb.com/api/v1`
-- 🔑 **NBA API**: Requires [balldontlie.io](https://www.balldontlie.io/) API key
-  - Sign up at: https://app.balldontlie.io/
-  - Free tier: 10 requests/minute, 1000 requests/day
-  - Paid tier: Higher limits available
+- ✅ **NBA API**: Uses [NBA.com Stats API](https://stats.nba.com/stats/) (free, no key required)
+  - Direct access to official NBA.com stats
+  - Base URL: `https://stats.nba.com/stats/`
+  - Reference: [swar/nba_api](https://github.com/swar/nba_api) documentation
+  - Requires proper HTTP headers (browser-like)
 - ✅ **NFL API**: Uses [nflverse-data](https://github.com/nflverse/nflverse-data) (free, no key required)
   - Data hosted on GitHub releases (JSON/Parquet files)
   - Base URL: `https://github.com/nflverse/nflverse-data/releases/download/`
@@ -21,17 +22,18 @@ This roadmap outlines the step-by-step process to extend your MLB MCP Server to 
 
 ### 2. Dependencies
 ```bash
-npm install @balldontlie/sdk  # Official SDK for NBA data
-# nflverse uses direct HTTP requests to GitHub releases - no SDK needed
+# No external SDKs needed - all APIs use native fetch
+# Optional: Add Parquet parser for NFL data
+npm install parquetjs-lite  # OR apache-arrow for NFL Parquet files
 ```
 
 ### 3. Environment Variables
 ```bash
-# Add to .env
-BALLDONTLIE_API_KEY=your_api_key_here  # Only needed for NBA
-
-# NFL uses public GitHub URLs - no authentication required
+# No API keys required! All three sports use free APIs
+# Optional: Configure base URLs if needed
+NBA_STATS_BASE=https://stats.nba.com/stats/
 NFL_DATA_BASE=https://github.com/nflverse/nflverse-data/releases/download/
+MLB_STATS_BASE=https://statsapi.mlb.com/api/v1
 ```
 
 ## Implementation Phases
@@ -108,7 +110,7 @@ node compare-players-enhanced.cjs "Aaron Judge" "Pete Alonso"  # Should still wo
 ---
 
 ### 🏀 Phase 2: NBA Implementation
-**Goal:** Add full NBA support using balldontlie.io API
+**Goal:** Add full NBA support using NBA.com official Stats API (free, no authentication)
 
 #### Step 2.1: Create NBA API Client
 ```bash
@@ -118,29 +120,46 @@ touch src/api/nba-api.ts
 
 **Tasks:**
 - [ ] Implement `NBAAPIClient extends BaseSportAPI`
-- [ ] Add API key authentication
-- [ ] Implement `searchPlayers()` with first/last name support
+- [ ] Add required HTTP headers (browser-like headers for NBA.com)
+- [ ] Implement player list caching (load once on initialization)
+- [ ] Implement `searchPlayers()` with client-side search on cached data
 - [ ] Implement `getPlayerStats()` with season filtering
 - [ ] Implement `getTeams()`
 - [ ] Implement `getSchedule()`
 - [ ] Implement `getGame()`
+- [ ] Add response parser for NBA.com's `resultSets` format
 
-**NBA API Endpoints:**
+**NBA API Endpoints (NBA.com):**
 ```typescript
-// Players
-GET /nba/players?first_name=LeBron&last_name=James&cursor=0
+// All Players (cache this - load once)
+GET https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=2024-25&IsOnlyCurrentSeason=0
 
-// Player Stats
-GET /nba/stats?player_ids[]=237&seasons[]=2024
+// Player Career Stats
+GET https://stats.nba.com/stats/playercareerstats?PlayerID=2544&PerMode=PerGame
+
+// Player Game Log
+GET https://stats.nba.com/stats/playergamelog?PlayerID=2544&Season=2024-25&SeasonType=Regular+Season
 
 // Teams
-GET /nba/teams
+GET https://stats.nba.com/stats/commonteamyears?LeagueID=00
 
-// Games
-GET /nba/games?dates[]=2024-10-19&team_ids[]=5
+// Today's Games (Scoreboard)
+GET https://stats.nba.com/stats/scoreboardv2?GameDate=2024-10-19&LeagueID=00&DayOffset=0
 
-// Specific Game
-GET /nba/games/:id
+// Box Score
+GET https://stats.nba.com/stats/boxscoretraditionalv2?GameID=0022400001
+```
+
+**Required Headers:**
+```typescript
+{
+  'Host': 'stats.nba.com',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  'Accept': 'application/json',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Referer': 'https://www.nba.com/',
+  'Origin': 'https://www.nba.com'
+}
 ```
 
 #### Step 2.2: Create NBA Comparison
@@ -151,17 +170,21 @@ touch src/comparison/nba-comparison.ts
 
 **Tasks:**
 - [ ] Implement `NBAComparison extends BaseComparison`
-- [ ] Define NBA metrics (pts, reb, ast, stl, blk, fg%, 3pt%, etc.)
-- [ ] Create stat groups: 'overall', 'scoring', 'defense', 'efficiency'
+- [ ] Define NBA metrics using NBA.com stat names (PTS, REB, AST, STL, BLK, FG_PCT, FG3_PCT, etc.)
+- [ ] Create stat groups: 'overall', 'scoring', 'playmaking', 'defense', 'efficiency', 'advanced'
 - [ ] Implement NBA-specific formatting
 - [ ] Add per-game vs total stats handling
+- [ ] Parse NBA.com's `resultSets` response format
 
-**NBA Stat Groups:**
+**NBA Stat Groups (NBA.com field names):**
 ```typescript
-// Scoring: pts, fg_pct, fg3_pct, ft_pct
-// Overall: pts, reb, ast, stl, blk
-// Defense: reb, stl, blk, dreb, oreb
-// Efficiency: fg_pct, fg3_pct, ft_pct, turnover
+// Overall: PTS, REB, AST, STL, BLK, FG_PCT
+// Scoring: PTS, FGM, FGA, FG_PCT, FG3M, FG3A, FG3_PCT, FTM, FTA, FT_PCT
+// Playmaking: AST, TOV, AST_TO_RATIO
+// Rebounding: REB, OREB, DREB, OREB_PCT, DREB_PCT
+// Defense: STL, BLK, PF, DEF_RTG
+// Efficiency: FG_PCT, FG3_PCT, FT_PCT, TS_PCT, EFG_PCT
+// Advanced: PER, TS_PCT, USG_PCT, OFF_RTG, DEF_RTG, NET_RTG
 ```
 
 #### Step 2.3: Create NBA Types
@@ -191,21 +214,30 @@ touch src/formatters/nba-formatter.ts
 
 #### Step 2.5: Test NBA Functionality
 ```bash
-# Test script
+# Test player search (should use cached data, no API call)
 node -e "
-const { SportAPIFactory } = require('./build/sport-factory.js');
-const api = SportAPIFactory.createAPI('NBA');
+const { NBAAPIClient } = require('./build/api/nba-api.js');
+const api = new NBAAPIClient();
 api.searchPlayers('LeBron James').then(console.log);
+"
+
+# Test stats retrieval
+node -e "
+const { NBAAPIClient } = require('./build/api/nba-api.js');
+const api = new NBAAPIClient();
+api.getPlayerStats(2544, '2024-25', 'PerGame').then(console.log);
 "
 ```
 
 **Validation:**
 ```bash
-# CLI test
+# CLI test - compare players
 node compare-players-multi-sport.cjs NBA "LeBron James" "Kevin Durant" 2024 overall
+node compare-players-multi-sport.cjs NBA "Stephen Curry" "Damian Lillard" 2024 scoring
 
-# MCP server test (once integrated)
-# Use compare-players tool with league: 'NBA'
+# Verify no API key needed
+# Verify proper headers are sent
+# Verify response parsing works with resultSets format
 ```
 
 ---
@@ -626,8 +658,8 @@ async makeRequest(endpoint: string) {
 
 ```bash
 # Phase 1: Setup
-npm install @balldontlie/sdk
-echo "BALLDONTLIE_API_KEY=your_key_here" >> .env
+# No API keys needed! All three sports use free APIs
+npm install parquetjs-lite  # Only for NFL Parquet parsing
 
 # Create directory structure
 mkdir -p src/api src/comparison src/types src/formatters
@@ -639,7 +671,7 @@ mkdir -p src/api src/comparison src/types src/formatters
 npm run build
 npm test
 
-# Try it out
+# Try it out - all free, no authentication!
 node compare-players-multi-sport.cjs MLB "Aaron Judge" "Pete Alonso"
 node compare-players-multi-sport.cjs NBA "LeBron James" "Kevin Durant"
 node compare-players-multi-sport.cjs NFL "Patrick Mahomes" "Josh Allen"
@@ -654,9 +686,11 @@ node compare-players-multi-sport.cjs NFL "Patrick Mahomes" "Josh Allen"
 - **MLB Stats API Explorer:** https://statsapi.mlb.com/
 
 ### NBA
-- **balldontlie.io Documentation:** https://docs.balldontlie.io/
-- **balldontlie SDK:** https://www.npmjs.com/package/@balldontlie/sdk
-- **Reference Implementation:** https://github.com/mikechao/balldontlie-mcp
+- **NBA.com Stats API:** https://stats.nba.com/stats/
+- **nba_api Python SDK (Reference):** https://github.com/swar/nba_api
+- **nba_api Documentation:** https://github.com/swar/nba_api/tree/master/docs
+- **Endpoint List:** https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/endpoints
+- **Static Players Module:** https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/players.md
 
 ### NFL
 - **nflverse-data GitHub:** https://github.com/nflverse/nflverse-data
