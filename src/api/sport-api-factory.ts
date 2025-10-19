@@ -7,12 +7,13 @@
  * Supported Leagues:
  * - MLB: Major League Baseball
  * - NBA: National Basketball Association
- * - NFL: National Football League (Phase 3 - not yet implemented)
+ * - NFL: National Football League
  */
 
 import { BaseSportAPI } from './base-api.js';
 import { MLBAPIClient } from './mlb-api.js';
 import { NBAAPIClient } from './nba-api.js';
+import { NFLAPIClient } from './nfl-api.js';
 
 /**
  * Supported sports leagues
@@ -26,7 +27,7 @@ export type League = 'mlb' | 'nba' | 'nfl';
 export class SportAPIFactory {
   private static mlbClient: MLBAPIClient | null = null;
   private static nbaClient: NBAAPIClient | null = null;
-  // private static nflClient: NFLAPIClient | null = null; // Phase 3
+  private static nflClient: NFLAPIClient | null = null;
   
   /**
    * Get API client for specified league
@@ -53,10 +54,13 @@ export class SportAPIFactory {
         return this.nbaClient;
         
       case 'nfl':
-        throw new Error('NFL API not yet implemented. Coming in Phase 3!');
+        if (!this.nflClient) {
+          this.nflClient = new NFLAPIClient();
+        }
+        return this.nflClient;
         
       default:
-        throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba`);
+        throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba, nfl`);
     }
   }
   
@@ -67,7 +71,7 @@ export class SportAPIFactory {
    * @returns true if league is supported
    */
   static isSupported(league: string): boolean {
-    return ['mlb', 'nba'].includes(league.toLowerCase());
+    return ['mlb', 'nba', 'nfl'].includes(league.toLowerCase());
   }
   
   /**
@@ -76,7 +80,7 @@ export class SportAPIFactory {
    * @returns Array of supported league identifiers
    */
   static getSupportedLeagues(): League[] {
-    return ['mlb', 'nba'];
+    return ['mlb', 'nba', 'nfl'];
   }
   
   /**
@@ -85,5 +89,6 @@ export class SportAPIFactory {
   static reset(): void {
     this.mlbClient = null;
     this.nbaClient = null;
+    this.nflClient = null;
   }
 }

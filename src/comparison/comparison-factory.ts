@@ -7,15 +7,17 @@
  * Supported Leagues:
  * - MLB: Major League Baseball
  * - NBA: National Basketball Association
- * - NFL: National Football League (Phase 3 - not yet implemented)
+ * - NFL: National Football League
  */
 
 import { BaseComparison } from './base-comparison.js';
 import { MLBComparison } from './mlb-comparison.js';
 import { NBAComparison } from './nba-comparison.js';
+import { NFLComparison } from './nfl-comparison.js';
 import { League, SportAPIFactory } from '../api/sport-api-factory.js';
 import { MLBAPIClient } from '../api/mlb-api.js';
 import { NBAAPIClient } from '../api/nba-api.js';
+import { NFLAPIClient } from '../api/nfl-api.js';
 
 /**
  * Factory for creating and managing sport comparison classes
@@ -24,7 +26,7 @@ import { NBAAPIClient } from '../api/nba-api.js';
 export class ComparisonFactory {
   private static mlbComparison: MLBComparison | null = null;
   private static nbaComparison: NBAComparison | null = null;
-  // private static nflComparison: NFLComparison | null = null; // Phase 3
+  private static nflComparison: NFLComparison | null = null;
   
   /**
    * Get comparison class for specified league
@@ -53,10 +55,14 @@ export class ComparisonFactory {
         return this.nbaComparison;
         
       case 'nfl':
-        throw new Error('NFL comparison not yet implemented. Coming in Phase 3!');
+        if (!this.nflComparison) {
+          const nflClient = SportAPIFactory.getClient('nfl') as NFLAPIClient;
+          this.nflComparison = new NFLComparison(nflClient);
+        }
+        return this.nflComparison;
         
       default:
-        throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba`);
+        throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba, nfl`);
     }
   }
   
@@ -67,7 +73,7 @@ export class ComparisonFactory {
    * @returns true if league is supported
    */
   static isSupported(league: string): boolean {
-    return ['mlb', 'nba'].includes(league.toLowerCase());
+    return ['mlb', 'nba', 'nfl'].includes(league.toLowerCase());
   }
   
   /**
@@ -76,7 +82,7 @@ export class ComparisonFactory {
    * @returns Array of supported league identifiers
    */
   static getSupportedLeagues(): League[] {
-    return ['mlb', 'nba'];
+    return ['mlb', 'nba', 'nfl'];
   }
   
   /**
@@ -85,5 +91,6 @@ export class ComparisonFactory {
   static reset(): void {
     this.mlbComparison = null;
     this.nbaComparison = null;
+    this.nflComparison = null;
   }
 }
