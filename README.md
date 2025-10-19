@@ -37,6 +37,8 @@ A comprehensive Model Context Protocol (MCP) server that provides unified access
 ### 🏈 **NFL Features** ✨ NEW
 - **Player Search** - Find NFL players from all 32 teams (2,533 players cached)
 - **Position-Specific Comparisons** - QB, RB, WR, TE, and Defensive positions
+- **Dynamic Stat Categories** - Filter by passing, rushing, receiving, defensive, general, or scoring (like MLB's hitting/pitching/fielding)
+- **Dual-Mode Support** - Use position (QB, RB, WR) OR category (passing, rushing, receiving) for comparisons
 - **Dynamic Season Detection** - Automatically detects current NFL season
 - **Historical Data** - Access stats from 2023+ seasons
 - **Player Name Resolution** - Real player names (not "Player {id}")

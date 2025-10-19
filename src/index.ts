@@ -610,13 +610,13 @@ server.registerTool(
   'compare-players',
   {
     title: 'Compare Two Players (Universal)',
-    description: 'Compare statistics between two players in MLB, NBA, or NFL with position-specific metrics',
+    description: 'Compare statistics between two players in MLB, NBA, or NFL with sport-specific metrics. NFL supports both position-based (QB, RB, WR) and category-based (passing, rushing, receiving, defensive) comparisons.',
     inputSchema: {
       league: z.enum(['mlb', 'nba', 'nfl']).default('mlb').describe('League (mlb, nba, nfl)'),
       player1Id: z.number().describe('First player\'s ID'),
       player2Id: z.number().describe('Second player\'s ID'),
       season: z.union([z.string(), z.number()]).optional().describe('Season year or "career" (NBA ignores season, NFL auto-detects if omitted)'),
-      statGroup: z.string().optional().describe('MLB: hitting/pitching/fielding | NFL: QB/RB/WR/TE/DE/LB/CB/S | NBA: not used')
+      statGroup: z.string().optional().describe('MLB: hitting/pitching/fielding | NFL: Position (QB/RB/WR/TE) OR Category (passing/rushing/receiving/defensive/general/scoring) | NBA: not used')
     },
     outputSchema: {
       league: z.string(),

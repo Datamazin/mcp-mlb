@@ -92,9 +92,15 @@ export class NFLAPIClient extends BaseSportAPI {
   /**
    * Get detailed player statistics
    * Uses the Core API statistics endpoint for comprehensive stats
-   * Automatically falls back to previous season if current season data is not available
+   * Supports filtering by stat category (passing, rushing, receiving, defensive, etc.)
    */
-  async getPlayerStats(playerId: string | number, options?: { season?: number }): Promise<any> {
+  async getPlayerStats(
+    playerId: string | number, 
+    options?: { 
+      season?: number;
+      statCategory?: string;  // 'passing', 'rushing', 'receiving', 'defensive', 'general', 'scoring', 'defensiveInterceptions'
+    }
+  ): Promise<any> {
     // Use current season if not specified
     const season = options?.season || this.getCurrentNFLSeason();
     const url = `${this.coreBaseUrl}/seasons/${season}/types/2/athletes/${playerId}/statistics/0?lang=en&region=us`;
@@ -112,12 +118,30 @@ export class NFLAPIClient extends BaseSportAPI {
       // Get player name from cache
       const playerName = this.playerNameMap.get(playerId.toString()) || `Player ${playerId}`;
       
+      // Filter by stat category if specified
+      let splits = data.splits;
+      if (options?.statCategory && splits?.categories) {
+        const categoryLower = options.statCategory.toLowerCase();
+        splits = {
+          ...splits,
+          categories: splits.categories.filter((cat: any) => 
+            cat.name?.toLowerCase() === categoryLower ||
+            cat.displayName?.toLowerCase() === categoryLower
+          )
+        };
+      }
+      
       // Return the data with the splits structure and player name
       return {
         playerId: playerId,
         playerName: playerName,
-        splits: data.splits,
-        season: data.season || { year: season }
+        splits: splits,
+        season: data.season || { year: season },
+        availableCategories: data.splits?.categories?.map((cat: any) => ({
+          name: cat.name,
+          displayName: cat.displayName,
+          statCount: cat.stats?.length || 0
+        })) || []
       };
     } catch (error) {
       console.error(`Error fetching player stats for ${playerId}:`, error);

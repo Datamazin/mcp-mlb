@@ -14,11 +14,20 @@ export class NFLComparison extends BaseComparison {
   }
 
   /**
-   * Get metrics based on stat group (position for NFL)
+   * Get metrics based on stat group
+   * Supports both position-based (QB, RB, WR) and category-based (passing, rushing, receiving)
    */
   protected getMetrics(statGroup?: string): ComparisonMetric[] {
-    const position = (statGroup || 'QB').toUpperCase();
-    return this.getMetricsForPosition(position);
+    const group = (statGroup || 'QB').toUpperCase();
+    
+    // Check if it's a stat category (passing, rushing, receiving, etc.)
+    const categoryMetrics = this.getMetricsForCategory(group);
+    if (categoryMetrics.length > 0) {
+      return categoryMetrics;
+    }
+    
+    // Otherwise treat as position
+    return this.getMetricsForPosition(group);
   }
 
   /**
@@ -52,9 +61,8 @@ export class NFLComparison extends BaseComparison {
       }
     }
 
-    // Get metrics for this position
-    const position = statGroup || 'QB';
-    const metrics = this.getMetricsForPosition(position);
+    // Get metrics for this stat group (position or category)
+    const metrics = this.getMetrics(statGroup);
 
     // Extract each metric value using the stat name
     for (const metric of metrics) {
@@ -136,6 +144,104 @@ export class NFLComparison extends BaseComparison {
       { key: 'touchdowns', name: 'Total TDs', higherIsBetter: true },
       { key: 'yardsGained', name: 'Total Yards', higherIsBetter: true }
     ];
+  }
+
+  /**
+   * Get comparison metrics based on stat category
+   * ESPN returns categories: general, passing, rushing, receiving, defensive, defensiveInterceptions, scoring
+   * Keys must match ESPN stat.name values from the API
+   */
+  private getMetricsForCategory(category: string): ComparisonMetric[] {
+    const cat = category.toUpperCase();
+
+    // Passing category metrics - using ESPN stat.name keys
+    if (cat === 'PASSING') {
+      return [
+        { key: 'teamGamesPlayed', name: 'Games Played', higherIsBetter: true },
+        { key: 'completions', name: 'Completions', higherIsBetter: true },
+        { key: 'passingAttempts', name: 'Attempts', higherIsBetter: true },
+        { key: 'completionPct', name: 'Completion %', higherIsBetter: true },
+        { key: 'netPassingYards', name: 'Passing Yards', higherIsBetter: true },
+        { key: 'yardsPerPassAttempt', name: 'Yards/Attempt', higherIsBetter: true },
+        { key: 'passingTouchdowns', name: 'Passing TDs', higherIsBetter: true },
+        { key: 'interceptions', name: 'Interceptions', higherIsBetter: false },
+        { key: 'QBRating', name: 'QB Rating', higherIsBetter: true },
+        { key: 'sacks', name: 'Sacks Taken', higherIsBetter: false }
+      ];
+    }
+
+    // Rushing category metrics - using ESPN stat.name keys
+    if (cat === 'RUSHING') {
+      return [
+        { key: 'teamGamesPlayed', name: 'Games Played', higherIsBetter: true },
+        { key: 'rushingAttempts', name: 'Rushing Attempts', higherIsBetter: true },
+        { key: 'rushingYards', name: 'Rushing Yards', higherIsBetter: true },
+        { key: 'yardsPerRushAttempt', name: 'Yards/Carry', higherIsBetter: true },
+        { key: 'longRushing', name: 'Long Rush', higherIsBetter: true },
+        { key: 'rushingTouchdowns', name: 'Rushing TDs', higherIsBetter: true },
+        { key: 'rushingBigPlays', name: '20+ Yard Rushes', higherIsBetter: true },
+        { key: 'rushingFumbles', name: 'Fumbles', higherIsBetter: false }
+      ];
+    }
+
+    // Receiving category metrics - using ESPN stat.name keys
+    if (cat === 'RECEIVING') {
+      return [
+        { key: 'teamGamesPlayed', name: 'Games Played', higherIsBetter: true },
+        { key: 'receptions', name: 'Receptions', higherIsBetter: true },
+        { key: 'receivingTargets', name: 'Targets', higherIsBetter: true },
+        { key: 'receivingYards', name: 'Receiving Yards', higherIsBetter: true },
+        { key: 'yardsPerReception', name: 'Yards/Reception', higherIsBetter: true },
+        { key: 'longReception', name: 'Long Reception', higherIsBetter: true },
+        { key: 'receivingTouchdowns', name: 'Receiving TDs', higherIsBetter: true },
+        { key: 'receivingBigPlays', name: '20+ Yard Receptions', higherIsBetter: true },
+        { key: 'receivingFumbles', name: 'Fumbles', higherIsBetter: false }
+      ];
+    }
+
+    // Defensive category metrics - using ESPN stat.name keys
+    if (cat === 'DEFENSIVE' || cat === 'DEFENSE') {
+      return [
+        { key: 'teamGamesPlayed', name: 'Games Played', higherIsBetter: true },
+        { key: 'totalTackles', name: 'Total Tackles', higherIsBetter: true },
+        { key: 'soloTackles', name: 'Solo Tackles', higherIsBetter: true },
+        { key: 'assistTackles', name: 'Assist Tackles', higherIsBetter: true },
+        { key: 'sacks', name: 'Sacks', higherIsBetter: true },
+        { key: 'sackYards', name: 'Sack Yards', higherIsBetter: true },
+        { key: 'tacklesForLoss', name: 'Tackles For Loss', higherIsBetter: true },
+        { key: 'passesDefended', name: 'Passes Defended', higherIsBetter: true },
+        { key: 'fumblesForced', name: 'Forced Fumbles', higherIsBetter: true },
+        { key: 'fumblesRecovered', name: 'Fumble Recoveries', higherIsBetter: true }
+      ];
+    }
+
+    // General category metrics - using ESPN stat.name keys
+    if (cat === 'GENERAL') {
+      return [
+        { key: 'gamesPlayed', name: 'Games Played', higherIsBetter: true },
+        { key: 'fumbles', name: 'Fumbles', higherIsBetter: false },
+        { key: 'fumblesLost', name: 'Fumbles Lost', higherIsBetter: false },
+        { key: 'fumblesForced', name: 'Forced Fumbles', higherIsBetter: true },
+        { key: 'fumblesRecovered', name: 'Fumbles Recovered', higherIsBetter: true }
+      ];
+    }
+
+    // Scoring category metrics - using ESPN stat.name keys
+    if (cat === 'SCORING') {
+      return [
+        { key: 'totalPoints', name: 'Total Points', higherIsBetter: true },
+        { key: 'totalTouchdowns', name: 'Touchdowns', higherIsBetter: true },
+        { key: 'rushingTouchdowns', name: 'Rushing TDs', higherIsBetter: true },
+        { key: 'receivingTouchdowns', name: 'Receiving TDs', higherIsBetter: true },
+        { key: 'passingTouchdowns', name: 'Passing TDs', higherIsBetter: true },
+        { key: 'twoPointPassConvs', name: '2-Pt Pass Conversions', higherIsBetter: true },
+        { key: 'twoPointRushConvs', name: '2-Pt Rush Conversions', higherIsBetter: true },
+        { key: 'twoPointRecConvs', name: '2-Pt Rec Conversions', higherIsBetter: true }
+      ];
+    }
+
+    // No matching category, return empty array
+    return [];
   }
 
   /**
