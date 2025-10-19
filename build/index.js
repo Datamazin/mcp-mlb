@@ -21,6 +21,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { MLBAPIClient } from './mlb-api.js';
+import { comparePlayers, formatComparisonResult } from './comparison-utils.js';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import fs from 'fs';
 import path from 'path';
@@ -518,6 +519,64 @@ server.registerTool('search-players', {
             content: [{
                     type: 'text',
                     text: `Error searching players: ${errorMessage}`
+                }],
+            isError: true
+        };
+    }
+});
+/**
+ * Tool: Compare two players
+ * Enhanced comparison tool inspired by MCP server best practices
+ */
+server.registerTool('compare-players', {
+    title: 'Compare Two Players',
+    description: 'Compare statistics between two players for a specific season or career',
+    inputSchema: {
+        player1Id: z.number().describe('First player\'s MLB ID'),
+        player2Id: z.number().describe('Second player\'s MLB ID'),
+        season: z.union([z.string(), z.number()]).default('career').describe('Season year or "career" for career comparison'),
+        statGroup: z.enum(['hitting', 'pitching', 'fielding']).default('hitting').describe('Type of stats to compare')
+    },
+    outputSchema: {
+        player1: z.object({
+            id: z.number(),
+            name: z.string(),
+            stats: z.record(z.any())
+        }),
+        player2: z.object({
+            id: z.number(),
+            name: z.string(),
+            stats: z.record(z.any())
+        }),
+        comparison: z.array(z.object({
+            category: z.string(),
+            player1Value: z.number(),
+            player2Value: z.number(),
+            winner: z.enum(['player1', 'player2', 'tie']),
+            difference: z.number()
+        })),
+        overallWinner: z.enum(['player1', 'player2', 'tie']).optional(),
+        summary: z.string()
+    }
+}, async ({ player1Id, player2Id, season = 'career', statGroup = 'hitting' }) => {
+    try {
+        const result = await comparePlayers(mlbClient, player1Id, player2Id, season, statGroup);
+        // Format as readable text
+        const formattedText = formatComparisonResult(result);
+        return {
+            content: [{
+                    type: 'text',
+                    text: formattedText
+                }],
+            structuredContent: result
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        return {
+            content: [{
+                    type: 'text',
+                    text: `Error comparing players: ${errorMessage}`
                 }],
             isError: true
         };

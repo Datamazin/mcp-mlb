@@ -3,16 +3,31 @@
  *
  * A client for interacting with the MLB Stats API to fetch team information,
  * player statistics, game schedules, live scores, and other baseball data.
+ *
+ * Enhanced with improved error handling and type safety patterns.
  */
 // Using built-in fetch (Node.js 18+)
 const fetch = globalThis.fetch;
+/**
+ * Custom error class for MLB API errors
+ */
+export class MLBAPIError extends Error {
+    statusCode;
+    endpoint;
+    constructor(message, statusCode, endpoint) {
+        super(message);
+        this.statusCode = statusCode;
+        this.endpoint = endpoint;
+        this.name = 'MLBAPIError';
+    }
+}
 export class MLBAPIClient {
     baseUrl;
     constructor(baseUrl) {
         this.baseUrl = baseUrl;
     }
     /**
-     * Make a request to the MLB Stats API
+     * Make a request to the MLB Stats API with enhanced error handling
      */
     async makeRequest(endpoint, params = {}) {
         const url = new URL(`${this.baseUrl}${endpoint}`);
@@ -23,11 +38,22 @@ export class MLBAPIClient {
             }
         });
         console.error(`Making request to: ${url.toString()}`);
-        const response = await fetch(url.toString());
-        if (!response.ok) {
-            throw new Error(`MLB API request failed: ${response.status} ${response.statusText}`);
+        try {
+            const response = await fetch(url.toString());
+            if (!response.ok) {
+                throw new MLBAPIError(`MLB API request failed: ${response.status} ${response.statusText}`, response.status, endpoint);
+            }
+            const data = await response.json();
+            return data;
         }
-        return response.json();
+        catch (error) {
+            if (error instanceof MLBAPIError) {
+                throw error;
+            }
+            // Handle fetch errors (network issues, etc.)
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            throw new MLBAPIError(`Failed to fetch from MLB API: ${errorMessage}`, undefined, endpoint);
+        }
     }
     /**
      * Get current MLB standings
@@ -127,13 +153,12 @@ export class MLBAPIClient {
         if (!data.stats || data.stats.length === 0) {
             throw new Error(`No stats found for player with ID ${playerId}`);
         }
-        // Find the hitting stats
-        const hittingStats = data.stats.find((stat) => stat.group && stat.group.displayName &&
-            stat.group.displayName.toLowerCase().includes('hitting'));
-        if (!hittingStats || !hittingStats.splits || hittingStats.splits.length === 0) {
-            throw new Error(`No hitting stats found for player with ID ${playerId}`);
+        // Try to find any stats group (hitting, pitching, or fielding)
+        const primaryStats = data.stats.find((stat) => stat.group && stat.group.displayName && stat.splits && stat.splits.length > 0);
+        if (!primaryStats) {
+            throw new Error(`No valid stats found for player with ID ${playerId}`);
         }
-        const split = hittingStats.splits[0];
+        const split = primaryStats.splits[0];
         const player = split.player;
         // Transform the API response to match the expected MCP schema
         const transformedStats = data.stats.map((stat) => ({

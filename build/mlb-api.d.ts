@@ -3,7 +3,17 @@
  *
  * A client for interacting with the MLB Stats API to fetch team information,
  * player statistics, game schedules, live scores, and other baseball data.
+ *
+ * Enhanced with improved error handling and type safety patterns.
  */
+/**
+ * Custom error class for MLB API errors
+ */
+export declare class MLBAPIError extends Error {
+    statusCode?: number | undefined;
+    endpoint?: string | undefined;
+    constructor(message: string, statusCode?: number | undefined, endpoint?: string | undefined);
+}
 export interface MLBTeam {
     [x: string]: unknown;
     id: number;
@@ -77,7 +87,7 @@ export declare class MLBAPIClient {
     private baseUrl;
     constructor(baseUrl: string);
     /**
-     * Make a request to the MLB Stats API
+     * Make a request to the MLB Stats API with enhanced error handling
      */
     private makeRequest;
     /**
