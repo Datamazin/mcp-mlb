@@ -1,20 +1,46 @@
-# 🏟️ MLB MCP Server with MLB.com Integration
+# � Multi-Sport MCP Server (MLB + NBA + NFL)
 
-A comprehensive Model Context Protocol (MCP) server that provides access to Major League Baseball data through the MLB Stats API with integrated MLB.com official resource links. This server enables AI applications to retrieve team information, player statistics, game schedules, live scores, historical baseball data, and direct access to official MLB.com content.
+A comprehensive Model Context Protocol (MCP) server that provides unified access to **Major League Baseball (MLB)**, **National Basketball Association (NBA)**, and **National Football League (NFL)** data through official APIs. This server enables AI applications to search for players, compare statistics, retrieve team information, game schedules, live scores, and historical sports data across all three major American sports leagues.
+
+## 🎯 Supported Sports
+
+- **⚾ MLB** - Major League Baseball (MLB Stats API)
+- **🏀 NBA** - National Basketball Association (NBA.com Stats API)  
+- **🏈 NFL** - National Football League (ESPN NFL API)
 
 ## 🌟 Features
 
-### 📊 **Core Data Access (17+ Tools)**
+### � **Universal Tools (Work Across All Sports)**
+- **🔍 search-players** - Search for players by name in MLB, NBA, or NFL
+- **⚖️ compare-players** - Compare two players with sport-specific metrics
+  - MLB: Batting, Pitching, Fielding stats
+  - NBA: Career statistics and averages
+  - NFL: Position-specific metrics (QB, RB, WR, TE, DEF)
+
+### ⚾ **MLB-Specific Tools (17+ Tools)**
 - **Historical Team Rosters** (1970s-present)
 - **Player Statistics** (career, season, game-by-game) - **All Game Types**
 - **Live Game Data** (scores, innings, play-by-play)
 - **League Standings** (division, wild card, historical) - **All Game Types**
 - **Game Schedules** (past, present, future) - **All Game Types**
-- **Postseason Schedule** (dedicated MLB postseason API endpoint) - **NEW**
+- **Postseason Schedule** (dedicated MLB postseason API endpoint)
 - **Statistical Leaders** (home runs, batting average, ERA, etc.)
 - **Advanced Analytics** (box scores, game logs) - **All Game Types**
 - **Data Visualization** (Chart.js integration with PNG export) - **All Game Types**
-- **MLB Jobs & Personnel** (umpires, managers, coaches, staff) - **NEW**
+- **MLB Jobs & Personnel** (umpires, managers, coaches, staff)
+
+### 🏀 **NBA Features**
+- **Player Search** - Find NBA players by name
+- **Career Comparisons** - Compare career statistics between two players
+- **Position-Agnostic Metrics** - Universal basketball statistics
+
+### 🏈 **NFL Features** ✨ NEW
+- **Player Search** - Find NFL players from all 32 teams (2,533 players cached)
+- **Position-Specific Comparisons** - QB, RB, WR, TE, and Defensive positions
+- **Dynamic Season Detection** - Automatically detects current NFL season
+- **Historical Data** - Access stats from 2023+ seasons
+- **Player Name Resolution** - Real player names (not "Player {id}")
+- **Roster Caching** - 24-hour cache for instant searches
 
 ### 🎯 **Dynamic Game Type Support (NEW)**
 The server now supports comprehensive game type filtering across all tools:
