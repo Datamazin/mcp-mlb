@@ -7,10 +7,11 @@
  * Supported Leagues:
  * - MLB: Major League Baseball
  * - NBA: National Basketball Association
- * - NFL: National Football League (Phase 3 - not yet implemented)
+ * - NFL: National Football League
  */
 import { MLBAPIClient } from './mlb-api.js';
 import { NBAAPIClient } from './nba-api.js';
+import { NFLAPIClient } from './nfl-api.js';
 /**
  * Factory for creating and managing sport API clients
  * Uses singleton pattern to maintain client instances and their caches
@@ -18,7 +19,7 @@ import { NBAAPIClient } from './nba-api.js';
 export class SportAPIFactory {
     static mlbClient = null;
     static nbaClient = null;
-    // private static nflClient: NFLAPIClient | null = null; // Phase 3
+    static nflClient = null;
     /**
      * Get API client for specified league
      * Creates new client on first call, returns cached instance on subsequent calls
@@ -41,9 +42,12 @@ export class SportAPIFactory {
                 }
                 return this.nbaClient;
             case 'nfl':
-                throw new Error('NFL API not yet implemented. Coming in Phase 3!');
+                if (!this.nflClient) {
+                    this.nflClient = new NFLAPIClient();
+                }
+                return this.nflClient;
             default:
-                throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba`);
+                throw new Error(`Unknown league: ${league}. Supported leagues: mlb, nba, nfl`);
         }
     }
     /**
@@ -53,7 +57,7 @@ export class SportAPIFactory {
      * @returns true if league is supported
      */
     static isSupported(league) {
-        return ['mlb', 'nba'].includes(league.toLowerCase());
+        return ['mlb', 'nba', 'nfl'].includes(league.toLowerCase());
     }
     /**
      * Get list of supported leagues
@@ -61,7 +65,7 @@ export class SportAPIFactory {
      * @returns Array of supported league identifiers
      */
     static getSupportedLeagues() {
-        return ['mlb', 'nba'];
+        return ['mlb', 'nba', 'nfl'];
     }
     /**
      * Reset all clients (useful for testing)
@@ -69,6 +73,7 @@ export class SportAPIFactory {
     static reset() {
         this.mlbClient = null;
         this.nbaClient = null;
+        this.nflClient = null;
     }
 }
 //# sourceMappingURL=sport-api-factory.js.map

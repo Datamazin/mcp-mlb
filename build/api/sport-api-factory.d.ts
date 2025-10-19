@@ -7,7 +7,7 @@
  * Supported Leagues:
  * - MLB: Major League Baseball
  * - NBA: National Basketball Association
- * - NFL: National Football League (Phase 3 - not yet implemented)
+ * - NFL: National Football League
  */
 import { BaseSportAPI } from './base-api.js';
 /**
@@ -21,6 +21,7 @@ export type League = 'mlb' | 'nba' | 'nfl';
 export declare class SportAPIFactory {
     private static mlbClient;
     private static nbaClient;
+    private static nflClient;
     /**
      * Get API client for specified league
      * Creates new client on first call, returns cached instance on subsequent calls

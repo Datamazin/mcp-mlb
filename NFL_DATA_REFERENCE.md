@@ -1,629 +1,808 @@
-# NFL Data Reference - nflverse
+# NFL Data Reference - ESPN API
 
-## Overview
-This document provides a quick reference for using nflverse-data in the multi-sport MCP server.
-
-**Source:** [nflverse-data](https://github.com/nflverse/nflverse-data)  
-**Documentation:** [nflreadr](https://nflreadr.nflverse.com/)
-
-## Key Differences from MLB/NBA APIs
-
-| Aspect | MLB/NBA | NFL (nflverse) |
-|--------|---------|----------------|
-| **API Type** | REST API | Static files (GitHub releases) |
-| **Authentication** | None (MLB) / API Key (NBA) | None |
-| **Data Format** | JSON | CSV, Parquet, RDS |
-| **Updates** | Real-time | GitHub Actions (periodic) |
-| **File Size** | Small responses | Large files (50-200MB) |
-| **Caching** | Optional | Highly recommended |
-
-## Available Datasets
-
-### Core Data Files
-
-#### 1. Players
-**URL:** `https://github.com/nflverse/nflverse-data/releases/download/players/players.csv`
-
-**Fields:**
-```typescript
-{
-  gsis_id: string;           // Primary ID (e.g., "00-0033537")
-  short_name: string;        // "P.Mahomes"
-  full_name: string;         // "Patrick Mahomes"
-  first_name: string;
-  last_name: string;
-  position: string;          // "QB", "RB", "WR", etc.
-  height: string;            // "6-3"
-  weight: number;            // 230
-  college: string;
-  status: string;            // "ACT" (Active), "RES" (Reserve), etc.
-  entry_year: number;        // Year entered NFL
-  rookie_year: number;
-  draft_club: string;        // Team that drafted player
-  draft_number: number;
-}
-```
-
-**Usage:**
-- Player search by name
-- Current roster information
-- Player profile data
+## Date: October 19, 2025
+## Source: ESPN NFL API (Public)
 
 ---
 
-#### 2. Rosters (Season-specific)
-**URL Pattern:** `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_{YEAR}.parquet`
+## 🏈 Overview
 
-**Example:** `roster_2024.parquet`
+ESPN provides free, public APIs for NFL data including teams, players, scores, schedules, and statistics.
 
-**Fields:**
-```typescript
-{
-  season: number;
-  team: string;              // Team abbreviation
-  position: string;
-  depth_chart_position: string;
-  jersey_number: number;
-  status: string;
-  full_name: string;
-  first_name: string;
-  last_name: string;
-  birth_date: string;
-  height: string;
-  weight: number;
-  college: string;
-  gsis_id: string;           // Links to players.csv
-  espn_id: string;
-  sportradar_id: string;
-  yahoo_id: string;
-  rotowire_id: string;
-  pff_id: string;
-  pfr_id: string;            // Pro Football Reference ID
-  fantasy_data_id: string;
-  sleeper_id: string;
-  years_exp: number;
-  headshot_url: string;
-}
-```
-
-**Usage:**
-- Team rosters by season
-- Player team history
-- Cross-platform ID mapping
+**Base URL**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl`  
+**Authentication**: None required (public API)  
+**Format**: JSON  
+**Rate Limits**: None documented (be respectful)
 
 ---
 
-#### 3. Player Stats (Weekly)
-**URL Pattern:** `https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_{YEAR}.parquet`
+## 📊 ESPN NFL API Endpoints
 
-**Example:** `player_stats_2024.parquet`
+> **Reference**: This documentation is based on the comprehensive [ESPN API Gist by nntrn](https://gist.github.com/nntrn/ee26cb2a0716de0947a0a4e9a157bc1c)
 
-**Fields (Passing):**
-```typescript
-{
-  player_id: string;
-  player_name: string;
-  player_display_name: string;
-  position: string;
-  position_group: string;    // "QB", "RB", "WR", "TE"
-  headshot_url: string;
-  
-  // Game Context
-  season: number;
-  season_type: string;       // "REG", "POST"
-  week: number;
-  game_id: string;
-  opponent_team: string;
-  
-  // Passing Stats
-  completions: number;
-  attempts: number;
-  passing_yards: number;
-  passing_tds: number;
-  interceptions: number;
-  sacks: number;
-  sack_yards: number;
-  sack_fumbles: number;
-  sack_fumbles_lost: number;
-  passing_air_yards: number;
-  passing_yards_after_catch: number;
-  passing_first_downs: number;
-  passing_epa: number;       // Expected Points Added
-  passing_2pt_conversions: number;
-  pacr: number;              // Passing Air Conversion Ratio
-  dakota: number;            // Adjusted completion percentage
-}
-```
-
-**Fields (Rushing):**
-```typescript
-{
-  carries: number;
-  rushing_yards: number;
-  rushing_tds: number;
-  rushing_fumbles: number;
-  rushing_fumbles_lost: number;
-  rushing_first_downs: number;
-  rushing_epa: number;
-  rushing_2pt_conversions: number;
-}
-```
-
-**Fields (Receiving):**
-```typescript
-{
-  receptions: number;
-  targets: number;
-  receiving_yards: number;
-  receiving_tds: number;
-  receiving_fumbles: number;
-  receiving_fumbles_lost: number;
-  receiving_air_yards: number;
-  receiving_yards_after_catch: number;
-  receiving_first_downs: number;
-  receiving_epa: number;
-  receiving_2pt_conversions: number;
-  racr: number;              // Receiver Air Conversion Ratio
-  target_share: number;
-  air_yards_share: number;
-  wopr: number;              // Weighted Opportunity Rating
-}
-```
-
-**Fields (Fantasy):**
-```typescript
-{
-  fantasy_points: number;            // Standard scoring
-  fantasy_points_ppr: number;        // PPR scoring
-}
-```
-
-**Usage:**
-- Player stats by game/week
-- Season aggregation (sum weekly stats)
-- Career totals (load multiple years)
+**Base URLs**:
+- `https://site.api.espn.com/apis/site/v2/sports/football/nfl` - Site API (v2)
+- `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl` - Core API (v2)
+- `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl` - Web API (v3)
 
 ---
 
-#### 4. Teams
-**URL:** `https://github.com/nflverse/nflverse-data/releases/download/teams/teams.csv`
+### 1. Teams - Get All NFL Teams
+**Endpoint**: `/teams`  
+**Full URL**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams`
 
-**Fields:**
-```typescript
+**Response Structure**:
+```json
 {
-  team_abbr: string;         // "KC", "BUF", etc.
-  team_name: string;         // "Kansas City Chiefs"
-  team_id: string;
-  team_nick: string;         // "Chiefs"
-  team_conf: string;         // "AFC" or "NFC"
-  team_division: string;     // "AFC West", "NFC North", etc.
-  team_color: string;        // Hex color
-  team_color2: string;
-  team_color3: string;
-  team_color4: string;
-  team_logo_wikipedia: string;
-  team_logo_espn: string;
-  team_wordmark: string;
-  team_conference_logo: string;
-  team_league_logo: string;
+  "sports": [{
+    "leagues": [{
+      "teams": [{
+        "team": {
+          "id": "12",
+          "uid": "s:20~l:28~t:12",
+          "slug": "kansas-city-chiefs",
+          "location": "Kansas City",
+          "name": "Chiefs",
+          "abbreviation": "KC",
+          "displayName": "Kansas City Chiefs",
+          "shortDisplayName": "Chiefs",
+          "color": "e31837",
+          "alternateColor": "ffb612",
+          "isActive": true,
+          "logos": [{
+            "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+            "width": 500,
+            "height": 500
+          }]
+        }
+      }]
+    }]
+  }]
 }
 ```
 
-**Usage:**
-- Team information
-- Team colors and logos
-- Division/conference structure
+**Key Fields**:
+- `id` - Team ID (1-34, used for other API calls)
+- `abbreviation` - 3-letter code (KC, BUF, etc.)
+- `displayName` - Full team name
+- `logos` - Team logo URLs at various sizes
+
+**Usage**: Get all 32 NFL teams with IDs for subsequent API calls
+
+**Alternative URLs**:
+- Core API: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/teams?limit=32`
+- Detailed Roster: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/{id}?enable=roster,projection,stats`
 
 ---
 
-#### 5. Schedule
-**URL Pattern:** `https://github.com/nflverse/nflverse-data/releases/download/schedules/schedules_{YEAR}.csv`
+### 2. Team Roster - Get Players by Team
+**Endpoint**: `/teams/{teamId}/roster`  
+**Example**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12/roster`
 
-**Example:** `schedules_2024.csv`
-
-**Fields:**
-```typescript
+**Response Structure**:
+```json
 {
-  game_id: string;           // "2024_01_KC_BAL"
-  season: number;
-  game_type: string;         // "REG", "WC", "DIV", "CON", "SB"
-  week: number;
-  gameday: string;           // "2024-09-05"
-  weekday: string;           // "Thursday"
-  gametime: string;          // "20:20"
-  away_team: string;
-  away_score: number;
-  home_team: string;
-  home_score: number;
-  location: string;          // "Home" or neutral site
-  result: number;            // Home team margin
-  total: number;             // Total points
-  overtime: number;          // 0 or 1
-  old_game_id: string;
-  gsis: string;
-  nfl_detail_id: string;
-  pfr: string;
-  pff: string;
-  espn: string;
-  ftn: string;
-  away_rest: number;
-  home_rest: number;
-  away_moneyline: number;
-  home_moneyline: number;
-  spread_line: number;
-  away_spread_odds: number;
-  home_spread_odds: number;
-  total_line: number;
-  under_odds: number;
-  over_odds: number;
-  div_game: number;          // Division game flag
-  roof: string;              // "outdoors", "dome", "closed", "open"
-  surface: string;           // "grass", "fieldturf", etc.
-  temp: number;
-  wind: number;
-  stadium: string;
-  stadium_id: string;
+  "team": {
+    "id": "12",
+    "abbreviation": "KC",
+    "displayName": "Kansas City Chiefs"
+  },
+  "athletes": [{
+    "position": "Quarterback",
+    "items": [{
+      "id": "3139477",
+      "uid": "s:20~l:28~a:3139477",
+      "displayName": "Patrick Mahomes",
+      "shortName": "P. Mahomes",
+      "weight": 225,
+      "displayWeight": "225 lbs",
+      "height": 74,
+      "displayHeight": "6' 2\"",
+      "age": 29,
+      "dateOfBirth": "1995-09-17T07:00Z",
+      "jersey": "15",
+      "position": {
+        "name": "Quarterback",
+        "displayName": "Quarterback",
+        "abbreviation": "QB"
+      },
+      "headshot": {
+        "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3139477.png"
+      },
+      "experience": {
+        "years": 7
+      }
+    }]
+  }]
 }
 ```
 
-**Usage:**
-- Game schedules
-- Score lookups
-- Betting lines and weather data
+**Usage**: 
+- Get team rosters (~53 players per team)
+- Build player search index (cache all rosters)
+- Position-based queries
+
+**Alternative URLs**:
+- Core API by Season: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/teams/{id}/athletes?limit=200`
+- Depth Charts: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/teams/{id}/depthcharts`
 
 ---
 
-#### 6. Play-by-Play
-**URL Pattern:** `https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{YEAR}.parquet`
+### 3. Player Details - Get Individual Player Info
+**Endpoint**: `/athletes/{playerId}`  
+**Example**: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477`
 
-**Warning:** Very large files (200+ MB)
-
-**Key Fields:**
-```typescript
+**Response Structure**:
+```json
 {
-  play_id: number;
-  game_id: string;
-  home_team: string;
-  away_team: string;
-  season_type: string;
-  week: number;
-  posteam: string;           // Possession team
-  defteam: string;           // Defense team
-  side_of_field: string;
-  yardline_100: number;      // Yards to endzone
-  game_date: string;
-  quarter_seconds_remaining: number;
-  half_seconds_remaining: number;
-  game_seconds_remaining: number;
-  game_half: string;
-  quarter_end: number;
-  drive: number;
-  sp: number;                // Scoring play
-  qtr: number;
-  down: number;
-  goal_to_go: number;
-  time: string;
-  yrdln: string;
-  ydstogo: number;
-  ydsnet: number;
-  desc: string;              // Play description
-  play_type: string;         // "pass", "run", "punt", "field_goal", etc.
-  yards_gained: number;
-  shotgun: number;
-  no_huddle: number;
-  qb_dropback: number;
-  qb_kneel: number;
-  qb_spike: number;
-  qb_scramble: number;
-  
-  // Passing
-  pass_length: string;       // "short", "deep"
-  pass_location: string;     // "left", "middle", "right"
-  air_yards: number;
-  yards_after_catch: number;
-  run_location: string;
-  run_gap: string;
-  
-  // Players
-  passer_player_id: string;
-  passer_player_name: string;
-  receiver_player_id: string;
-  receiver_player_name: string;
-  rusher_player_id: string;
-  rusher_player_name: string;
-  
-  // EPA (Expected Points Added)
-  epa: number;
-  ep: number;
-  total_home_epa: number;
-  total_away_epa: number;
-  
-  // WP (Win Probability)
-  wp: number;
-  def_wp: number;
-  home_wp: number;
-  away_wp: number;
-  wpa: number;
-  
-  // Scores
-  total_home_score: number;
-  total_away_score: number;
-  posteam_score: number;
-  defteam_score: number;
+  "athlete": {
+    "id": "3139477",
+    "uid": "s:20~l:28~a:3139477",
+    "displayName": "Patrick Mahomes",
+    "fullName": "Patrick Lavon Mahomes II",
+    "firstName": "Patrick",
+    "lastName": "Mahomes",
+    "position": {
+      "name": "Quarterback",
+      "abbreviation": "QB"
+    },
+    "jersey": "15",
+    "team": {
+      "id": "12",
+      "abbreviation": "KC",
+      "displayName": "Kansas City Chiefs"
+    },
+    "birth": {
+      "date": "1995-09-17T07:00Z",
+      "city": "Tyler",
+      "state": "Texas",
+      "country": "USA"
+    },
+    "college": {
+      "name": "Texas Tech",
+      "mascot": "Red Raiders"
+    },
+    "height": 74,
+    "weight": 225,
+    "experience": {
+      "years": 7
+    },
+    "headshot": {
+      "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3139477.png"
+    },
+    "statistics": [{
+      "name": "careerStats",
+      "displayName": "Career Stats",
+      "labels": ["GP", "COMP", "ATT", "YDS", "TD", "INT", "QBR"],
+      "descriptions": ["Games Played", "Completions", "Attempts", "Yards", "Touchdowns", "Interceptions", "QB Rating"],
+      "totals": [99, 2241, 3443, 28424, 219, 63, 103.8]
+    }]
+  }
 }
 ```
 
-**Usage:**
-- Detailed game analysis
-- Play-by-play reconstruction
-- Advanced metrics (EPA, WP)
-- Real-time game data (requires latest pull)
+**Usage**:
+- Player profile information
+- Career statistics
+- Bio information (college, birth, etc.)
+
+**Additional Player Endpoints**:
+- ⭐ **Player Overview**: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/{id}/overview`
+- ⭐ **Gamelog**: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/{id}/gamelog`
+- ⭐ **Splits**: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/{id}/splits`
+- **Event Log** (stats per game): `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/athletes/{id}/eventlog`
+- **All Active Players**: `https://sports.core.api.espn.com/v3/sports/football/nfl/athletes?limit=20000&active=true`
+- **Search Players**: `https://site.web.api.espn.com/apis/common/v3/search?query={name}&limit=100`
 
 ---
 
-## Data Loading Strategies
+### 4. Scoreboard - Get Games and Scores
+**Endpoint**: `/scoreboard`  
+**Full URL**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20241013`
 
-### 1. CSV Files (Small datasets)
-```typescript
-// Best for: players, teams, schedules
-async loadCSV(url: string): Promise<any[]> {
-  const response = await fetch(url);
-  const text = await response.text();
-  return parseCSV(text);
+**Parameters**:
+- `dates` - YYYYMMDD format (e.g., 20241013 for Oct 13, 2024)
+- `limit` - Number of games to return (optional)
+- `seasontype` - 1=Preseason, 2=Regular Season, 3=Postseason
+
+**Response Structure**:
+```json
+{
+  "leagues": [{
+    "name": "National Football League",
+    "abbreviation": "NFL"
+  }],
+  "season": {
+    "year": 2024,
+    "type": 2
+  },
+  "week": {
+    "number": 6,
+    "text": "Week 6"
+  },
+  "events": [{
+    "id": "401671716",
+    "uid": "s:20~l:28~e:401671716",
+    "date": "2024-10-13T17:00Z",
+    "name": "Kansas City Chiefs at San Francisco 49ers",
+    "shortName": "KC @ SF",
+    "competitions": [{
+      "id": "401671716",
+      "uid": "s:20~l:28~e:401671716~c:401671716",
+      "date": "2024-10-13T17:00Z",
+      "attendance": 70000,
+      "status": {
+        "type": {
+          "id": "3",
+          "name": "STATUS_FINAL",
+          "state": "post",
+          "completed": true
+        }
+      },
+      "competitors": [{
+        "id": "12",
+        "uid": "s:20~l:28~t:12",
+        "type": "team",
+        "order": 0,
+        "homeAway": "away",
+        "team": {
+          "id": "12",
+          "abbreviation": "KC",
+          "displayName": "Kansas City Chiefs",
+          "shortDisplayName": "Chiefs",
+          "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png"
+        },
+        "score": "28",
+        "linescores": [
+          {"value": 7},
+          {"value": 7},
+          {"value": 7},
+          {"value": 7}
+        ],
+        "statistics": [{
+          "name": "firstDowns",
+          "displayValue": "21"
+        }]
+      }, {
+        "id": "25",
+        "homeAway": "home",
+        "team": {
+          "id": "25",
+          "abbreviation": "SF",
+          "displayName": "San Francisco 49ers"
+        },
+        "score": "18"
+      }],
+      "situation": {
+        "lastPlay": {
+          "text": "Game ended"
+        }
+      }
+    }]
+  }]
 }
 ```
 
-**Pros:**
-- Easy to parse
-- No special libraries needed
-- Good for small files (<10MB)
+**Usage**:
+- Get games by date
+- Live scores during games
+- Final scores after games
+- Weekly schedule
 
-**Cons:**
-- Slower for large files
-- Higher bandwidth
+**Additional Game Endpoints**:
+- ⭐ **Game Summary**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event={eventId}`
+- **Play by Play**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/{id}/competitions/{id}/plays?limit=300`
+- **Drives**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/{id}/competitions/{id}/drives`
+- **Win Probabilities**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/{id}/competitions/{id}/probabilities?limit=200`
+- **XHR Scoreboard**: `https://cdn.espn.com/core/nfl/scoreboard?xhr=1&limit=50`
 
 ---
 
-### 2. Parquet Files (Large datasets)
-```typescript
-// Best for: player_stats, rosters, pbp
-import { readParquet } from 'parquetjs-lite';
-// OR
-import { tableFromIPC } from 'apache-arrow';
+### 5. Standings - Division and Conference Standings
+**Endpoint**: `/standings`  
+**Full URL**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/standings`
 
-async loadParquet(url: string): Promise<any[]> {
-  const response = await fetch(url);
-  const buffer = await response.arrayBuffer();
-  
-  // Parse with chosen library
-  const table = await readParquet(buffer);
-  return table.toArray();
+**Parameters**:
+- `season` - Year (e.g., 2024) (optional)
+- `group` - 1=AFC, 2=NFC (optional)
+
+**Response Structure**:
+```json
+{
+  "uid": "s:20~l:28~g:9",
+  "id": "9",
+  "name": "National Football League",
+  "abbreviation": "NFL",
+  "children": [{
+    "uid": "s:20~l:28~g:9~d:1",
+    "id": "1",
+    "name": "AFC East",
+    "abbreviation": "AFC East",
+    "standings": {
+      "entries": [{
+        "team": {
+          "id": "2",
+          "abbreviation": "BUF",
+          "displayName": "Buffalo Bills",
+          "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png"
+        },
+        "stats": [
+          {"name": "wins", "displayName": "Wins", "value": 10},
+          {"name": "losses", "displayName": "Losses", "value": 3},
+          {"name": "winPercent", "displayName": "Win %", "value": 0.769},
+          {"name": "gamesBehind", "displayName": "GB", "value": 0.0},
+          {"name": "pointsFor", "displayName": "PF", "value": 345},
+          {"name": "pointsAgainst", "displayName": "PA", "value": 232},
+          {"name": "differential", "displayName": "DIFF", "value": 113}
+        ]
+      }]
+    }
+  }]
 }
 ```
 
-**Pros:**
-- Much smaller file size (10x compression)
-- Faster parsing
-- Columnar format (efficient filtering)
+**Usage**:
+- Division standings
+- Conference standings
+- Win-loss records
+- Points for/against
 
-**Cons:**
-- Requires library dependency
-- More complex parsing
+**Alternative Standings URLs**:
+- **XHR Standings**: `https://cdn.espn.com/core/nfl/standings?xhr=1`
+- **Group Standings** (by division/conference): `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/{seasonType}/groups/{groupId}/standings`
+  - AFC (groupId=8), NFC (groupId=7)
 
 ---
 
-### 3. Caching Strategy
+### 6. Additional Important Endpoints
+
+**Schedule**:
+- **Team Schedule**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/{id}/schedule?season={year}`
+- **Weekly Events**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/{seasonType}/weeks/{week}/events`
+- **XHR Schedule**: `https://cdn.espn.com/core/nfl/schedule?xhr=1&year={year}&week={week}`
+
+**Special Game Days**:
+- **Monday Night Football**: `https://site.api.espn.com/apis/site/v2/mondaynightfootball`
+- **Thursday Night Football**: `https://site.api.espn.com/apis/site/v2/thursdaynightfootball`
+- **Sunday Night Football**: `https://site.api.espn.com/apis/site/v2/sundaynightfootball`
+
+**Leaders & Statistics**:
+- **Current Leaders**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/leaders`
+- **Season Leaders**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/{seasonType}/leaders`
+- **QBR Weekly**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/2/weeks/{week}/qbr/10000?limit=100`
+
+**News**:
+- **NFL News**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50`
+- **Team News**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?team={teamId}`
+
+**Injuries**:
+- **Team Injuries**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/teams/{id}/injuries?limit=100`
+- **Site Injuries API**: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries?team={abbrev}`
+
+**Other**:
+- **Transactions**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/transactions`
+- **Draft**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/draft`
+- **Free Agents**: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/freeagents`
+
+---
+
+## 🗺️ NFL Team ID Mapping
+
 ```typescript
-class NFLDataCache {
-  private cache = new Map<string, any>();
-  private expiry = new Map<string, number>();
+const NFL_TEAMS: { [key: string]: number } = {
+  // AFC East
+  'bills': 2,
+  'dolphins': 15,
+  'patriots': 17,
+  'jets': 20,
   
-  async get(key: string, loader: () => Promise<any>, ttl = 3600000): Promise<any> {
-    if (this.cache.has(key) && this.expiry.get(key)! > Date.now()) {
-      return this.cache.get(key);
+  // AFC North
+  'ravens': 33,
+  'bengals': 4,
+  'browns': 5,
+  'steelers': 23,
+  
+  // AFC South
+  'texans': 34,
+  'colts': 11,
+  'jaguars': 30,
+  'titans': 10,
+  
+  // AFC West
+  'broncos': 7,
+  'chiefs': 12,
+  'raiders': 13,
+  'chargers': 24,
+  
+  // NFC East
+  'cowboys': 6,
+  'giants': 19,
+  'eagles': 21,
+  'commanders': 28,
+  
+  // NFC North
+  'bears': 3,
+  'lions': 8,
+  'packers': 9,
+  'vikings': 16,
+  
+  // NFC South
+  'falcons': 1,
+  'panthers': 29,
+  'saints': 18,
+  'buccaneers': 27,
+  
+  // NFC West
+  'cardinals': 22,
+  'rams': 14,
+  '49ers': 25,
+  'seahawks': 26
+};
+```
+
+---
+
+## 🏗️ Implementation Strategy for Phase 3
+
+### NFLAPIClient Structure
+```typescript
+export class NFLAPIClient extends BaseSportAPI {
+  private baseUrl = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl';
+  private playerCache: BasePlayer[] | null = null;
+  private cacheExpiry: number | null = null;
+  private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+  
+  // Required BaseSportAPI methods
+  async searchPlayers(query: string, activeStatus?: string): Promise<BasePlayer[]> {
+    // Load all team rosters, cache for 24h, search client-side
+    if (!this.playerCache || !this.cacheExpiry || Date.now() > this.cacheExpiry) {
+      await this.loadPlayerCache();
+    }
+    return this.searchInCache(query);
+  }
+  
+  async getPlayerStats(playerId: string | number): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/athletes/${playerId}`);
+    return await response.json();
+  }
+  
+  async getTeams(): Promise<BaseTeam[]> {
+    const response = await fetch(`${this.baseUrl}/teams`);
+    const data = await response.json();
+    return this.parseTeams(data);
+  }
+  
+  async getTeamInfo(teamId: string | number): Promise<BaseTeam> {
+    const response = await fetch(`${this.baseUrl}/teams/${teamId}`);
+    return await response.json();
+  }
+  
+  async getSchedule(params: BaseScheduleParams): Promise<BaseGame[]> {
+    const dateStr = this.formatDate(params.startDate);
+    const response = await fetch(`${this.baseUrl}/scoreboard?dates=${dateStr}`);
+    const data = await response.json();
+    return this.parseGames(data);
+  }
+  
+  async getGame(gameId: string | number): Promise<BaseGame> {
+    // Game details available in scoreboard endpoint
+    const response = await fetch(`${this.baseUrl}/scoreboard`);
+    const data = await response.json();
+    return this.findGame(data, gameId);
+  }
+  
+  async getPlayerInfo(playerId: string | number): Promise<BasePlayer> {
+    return await this.getPlayerStats(playerId);
+  }
+  
+  // NFL-specific methods
+  async getScoreboard(date: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/scoreboard?dates=${date}`);
+    return await response.json();
+  }
+  
+  async getStandings(season?: number, conference?: number): Promise<any> {
+    let url = `${this.baseUrl}/standings`;
+    const params = [];
+    if (season) params.push(`season=${season}`);
+    if (conference) params.push(`group=${conference}`);
+    if (params.length) url += `?${params.join('&')}`;
+    
+    const response = await fetch(url);
+    return await response.json();
+  }
+  
+  async getTeamRoster(teamId: string | number): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/teams/${teamId}/roster`);
+    return await response.json();
+  }
+  
+  private async loadPlayerCache(): Promise<void> {
+    const teams = await this.getTeams();
+    const players: BasePlayer[] = [];
+    
+    for (const team of teams) {
+      const roster = await this.getTeamRoster(team.id);
+      players.push(...this.parseRoster(roster, team));
     }
     
-    const data = await loader();
-    this.cache.set(key, data);
-    this.expiry.set(key, Date.now() + ttl);
-    return data;
-  }
-}
-```
-
-**Recommended TTLs:**
-- Players: 24 hours (rarely changes)
-- Teams: 24 hours (rarely changes)
-- Rosters: 1 week (changes during season)
-- Schedules: 1 day (scores update daily)
-- Player Stats: 1 hour (updates after games)
-- Play-by-Play: 15 minutes (real-time during games)
-
----
-
-## Implementation Examples
-
-### Player Search
-```typescript
-async searchPlayers(name: string): Promise<NFLPlayer[]> {
-  const playersUrl = `${this.baseUrl}players/players.csv`;
-  const players = await this.cache.get(playersUrl, () => this.loadCSV(playersUrl));
-  
-  const searchTerms = name.toLowerCase().split(' ');
-  return players.filter(player => 
-    searchTerms.every(term => 
-      player.full_name?.toLowerCase().includes(term) ||
-      player.short_name?.toLowerCase().includes(term)
-    )
-  );
-}
-```
-
-### Player Stats (Season Total)
-```typescript
-async getPlayerSeasonStats(playerId: string, season: number): Promise<NFLSeasonStats> {
-  const statsUrl = `${this.baseUrl}player_stats/player_stats_${season}.parquet`;
-  const weeklyStats = await this.cache.get(
-    statsUrl, 
-    () => this.loadParquet(statsUrl),
-    3600000 // 1 hour cache
-  );
-  
-  // Filter to player
-  const playerWeeks = weeklyStats.filter(stat => 
-    stat.player_id === playerId && 
-    stat.season_type === 'REG'
-  );
-  
-  // Aggregate
-  return this.aggregateWeeklyStats(playerWeeks);
-}
-
-private aggregateWeeklyStats(weeks: any[]): NFLSeasonStats {
-  const totals: any = {
-    player_id: weeks[0]?.player_id,
-    player_name: weeks[0]?.player_name,
-    position: weeks[0]?.position,
-    games: weeks.length
-  };
-  
-  // Sum all numeric stats
-  const numericFields = [
-    'completions', 'attempts', 'passing_yards', 'passing_tds', 'interceptions',
-    'carries', 'rushing_yards', 'rushing_tds',
-    'receptions', 'targets', 'receiving_yards', 'receiving_tds',
-    'fantasy_points', 'fantasy_points_ppr'
-  ];
-  
-  weeks.forEach(week => {
-    numericFields.forEach(field => {
-      if (typeof week[field] === 'number') {
-        totals[field] = (totals[field] || 0) + week[field];
-      }
-    });
-  });
-  
-  // Calculate averages
-  totals.completion_pct = (totals.completions / totals.attempts) * 100;
-  totals.yards_per_carry = totals.rushing_yards / totals.carries;
-  totals.yards_per_reception = totals.receiving_yards / totals.receptions;
-  
-  return totals;
-}
-```
-
-### Get Game Schedule
-```typescript
-async getSchedule(season: number, week?: number, team?: string): Promise<NFLGame[]> {
-  const scheduleUrl = `${this.baseUrl}schedules/schedules_${season}.csv`;
-  let schedule = await this.cache.get(scheduleUrl, () => this.loadCSV(scheduleUrl));
-  
-  // Filter by week
-  if (week) {
-    schedule = schedule.filter(game => game.week === week);
+    this.playerCache = players;
+    this.cacheExpiry = Date.now() + this.CACHE_DURATION;
   }
   
-  // Filter by team
-  if (team) {
-    schedule = schedule.filter(game => 
-      game.home_team === team || game.away_team === team
-    );
+  private formatDate(date: string): string {
+    // Convert YYYY-MM-DD to YYYYMMDD
+    return date.replace(/-/g, '');
   }
-  
-  return schedule;
 }
 ```
 
 ---
 
-## Comparison Metrics
+## 📊 NFL Comparison Metrics by Position
 
-### Quarterback Stats
+### Quarterbacks
 ```typescript
-const qbMetrics = [
-  { key: 'passing_yards', name: 'Passing Yards', higherIsBetter: true },
-  { key: 'passing_tds', name: 'Passing TDs', higherIsBetter: true },
+const qbMetrics: ComparisonMetric[] = [
+  { key: 'completions', name: 'Completions', higherIsBetter: true },
+  { key: 'attempts', name: 'Attempts', higherIsBetter: true },
+  { key: 'passingYards', name: 'Passing Yards', higherIsBetter: true },
+  { key: 'passingTDs', name: 'Passing TDs', higherIsBetter: true },
   { key: 'interceptions', name: 'Interceptions', higherIsBetter: false },
-  { key: 'completion_pct', name: 'Completion %', higherIsBetter: true },
-  { key: 'passing_epa', name: 'EPA', higherIsBetter: true }
+  { key: 'completionPct', name: 'Completion %', higherIsBetter: true },
+  { key: 'qbRating', name: 'QB Rating', higherIsBetter: true },
+  { key: 'rushingYards', name: 'Rushing Yards', higherIsBetter: true }
 ];
 ```
 
-### Running Back Stats
+### Running Backs
 ```typescript
-const rbMetrics = [
-  { key: 'rushing_yards', name: 'Rushing Yards', higherIsBetter: true },
-  { key: 'rushing_tds', name: 'Rushing TDs', higherIsBetter: true },
-  { key: 'yards_per_carry', name: 'Yards/Carry', higherIsBetter: true },
+const rbMetrics: ComparisonMetric[] = [
+  { key: 'rushingYards', name: 'Rushing Yards', higherIsBetter: true },
+  { key: 'rushingTDs', name: 'Rushing TDs', higherIsBetter: true },
+  { key: 'yardsPerCarry', name: 'Yards/Carry', higherIsBetter: true },
   { key: 'receptions', name: 'Receptions', higherIsBetter: true },
-  { key: 'fantasy_points_ppr', name: 'Fantasy Points', higherIsBetter: true }
+  { key: 'receivingYards', name: 'Receiving Yards', higherIsBetter: true },
+  { key: 'fumbles', name: 'Fumbles', higherIsBetter: false }
 ];
 ```
 
-### Wide Receiver Stats
+### Wide Receivers / Tight Ends
 ```typescript
-const wrMetrics = [
+const wrMetrics: ComparisonMetric[] = [
   { key: 'receptions', name: 'Receptions', higherIsBetter: true },
-  { key: 'receiving_yards', name: 'Receiving Yards', higherIsBetter: true },
-  { key: 'receiving_tds', name: 'Receiving TDs', higherIsBetter: true },
-  { key: 'yards_per_reception', name: 'Yards/Reception', higherIsBetter: true },
-  { key: 'target_share', name: 'Target Share', higherIsBetter: true }
+  { key: 'receivingYards', name: 'Receiving Yards', higherIsBetter: true },
+  { key: 'receivingTDs', name: 'Receiving TDs', higherIsBetter: true },
+  { key: 'yardsPerReception', name: 'Yards/Reception', higherIsBetter: true },
+  { key: 'targets', name: 'Targets', higherIsBetter: true },
+  { key: 'catchPct', name: 'Catch %', higherIsBetter: true }
+];
+```
+
+### Defensive Players
+```typescript
+const defMetrics: ComparisonMetric[] = [
+  { key: 'tackles', name: 'Tackles', higherIsBetter: true },
+  { key: 'sacks', name: 'Sacks', higherIsBetter: true },
+  { key: 'interceptions', name: 'Interceptions', higherIsBetter: true },
+  { key: 'forcedFumbles', name: 'Forced Fumbles', higherIsBetter: true },
+  { key: 'passesDefended', name: 'Passes Defended', higherIsBetter: true }
 ];
 ```
 
 ---
 
-## Update Schedule
+## 🧪 Example API Calls
 
-nflverse-data updates via GitHub Actions:
-
-- **During Season:**
-  - Player stats: Updated after each game day (usually next morning)
-  - Play-by-play: Updated after games complete
-  - Rosters: Updated weekly
-  
-- **Off-Season:**
-  - Players: Updated as changes occur
-  - Draft picks: Updated after draft
-  - Combine: Updated after combine
-
-**Check for updates:**
+### Get All Teams
 ```bash
-# View latest release
-https://github.com/nflverse/nflverse-data/releases/latest
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams"
+```
 
-# Check file timestamps
-curl -I https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_2024.parquet
+### Get Chiefs Roster (with detailed info)
+```bash
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12?enable=roster,projection,stats"
+```
+
+### Get Patrick Mahomes Overview (comprehensive)
+```bash
+curl "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/overview"
+```
+
+### Get Patrick Mahomes Gamelog
+```bash
+curl "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/gamelog"
+```
+
+### Get Scoreboard for Oct 13, 2024
+```bash
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20241013"
+```
+
+### Get Scoreboard for Week 6, 2024
+```bash
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2024&seasontype=2&week=6"
+```
+
+### Get Game Summary (detailed)
+```bash
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=401671716"
+```
+
+### Get Play-by-Play
+```bash
+curl "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401671716/competitions/401671716/plays?limit=300"
+```
+
+### Get Current Standings
+```bash
+curl "https://site.api.espn.com/apis/site/v2/sports/football/nfl/standings"
+```
+
+### Get AFC Standings Only
+```bash
+curl "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2024/types/2/groups/8/standings"
+```
+
+### Search for Players
+```bash
+curl "https://site.web.api.espn.com/apis/common/v3/search?query=mahomes&limit=10"
+```
+
+### Get All Active Players
+```bash
+curl "https://sports.core.api.espn.com/v3/sports/football/nfl/athletes?limit=20000&active=true"
+```
+
+### Get Season Leaders
+```bash
+curl "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2024/types/2/leaders"
+```
+
+### Get QBR for Week 6
+```bash
+curl "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2024/types/2/weeks/6/qbr/10000?limit=100"
 ```
 
 ---
 
-## Performance Tips
+## 📋 Phase 3 Implementation Checklist
 
-1. **Cache Aggressively:** Files are large, download once
-2. **Use Parquet:** 10x smaller than CSV for large datasets
-3. **Filter Early:** Don't load all data if you only need subset
-4. **Lazy Load:** Only load data when needed
-5. **Background Updates:** Refresh cache in background
-6. **Compression:** Use gzip for transport if fetching CSV
+1. ✅ Research ESPN NFL API endpoints (comprehensive gist referenced)
+2. 📋 Create `src/api/nfl-api.ts` extending BaseSportAPI
+3. 📋 Implement team loading (32 teams)
+   - Use: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams`
+4. 📋 Implement roster caching (~1,700 total players)
+   - Use: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/{id}/roster`
+   - Or: `https://sports.core.api.espn.com/v3/sports/football/nfl/athletes?limit=20000&active=true`
+5. 📋 Implement player search (client-side from cache or use search API)
+   - Search API: `https://site.web.api.espn.com/apis/common/v3/search?query={name}`
+6. 📋 Implement player stats retrieval
+   - Overview: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/{id}/overview`
+   - Gamelog: `https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/{id}/gamelog`
+7. 📋 Implement schedule/scoreboard
+   - Scoreboard: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates={date}`
+   - Weekly: `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{year}/types/2/weeks/{week}/events`
+8. 📋 Create `src/comparison/nfl-comparison.ts` extending BaseComparison
+9. 📋 Add position-specific comparison metrics (QB/RB/WR/TE/DEF)
+10. 📋 Update `SportAPIFactory` to include NFL
+11. 📋 Update `ComparisonFactory` to include NFL
+12. 📋 Create comprehensive test suite (`test-nfl-api.cjs`)
+13. 📋 Update universal MCP tools to support NFL
+14. 📋 Create NFL-specific tools:
+    - get-nfl-weekly-schedule
+    - get-nfl-prime-time-games (MNF/TNF/SNF)
+    - get-nfl-injuries
+    - get-nfl-qbr-leaders
+15. 📋 Documentation and examples
 
 ---
 
-## Data Quality Notes
+## 🎯 Key Advantages of ESPN NFL API
 
-- Historical data available back to 1999
-- Play-by-play data most complete from 2009+
-- Some advanced metrics (EPA, WP) only available 2009+
-- Player IDs (gsis_id) are stable and reliable
-- Team abbreviations standardized (see teams.csv)
-- Missing data handled as NULL/NA in source
+1. ✅ **Free and Public** - No authentication required
+2. ✅ **Real-time Data** - Live scores and updates
+3. ✅ **Comprehensive** - Teams, players, stats, schedules
+4. ✅ **JSON Format** - Same as MLB/NBA APIs
+5. ✅ **Reliable** - ESPN's production API
+6. ✅ **No Rate Limits** - (within reason)
+7. ✅ **Similar Patterns** - Easy to implement after MLB/NBA
 
 ---
 
-## Resources
+## ⚠️ Considerations
 
-- **GitHub Repository:** https://github.com/nflverse/nflverse-data
-- **Documentation:** https://nflreadr.nflverse.com/
-- **Data Dictionary:** https://nflreadr.nflverse.com/articles/dictionary.html
-- **R Package (reference):** https://github.com/nflverse/nflreadr
-- **Discord Community:** https://discord.gg/5Er2FBnnQa
+1. **No Direct Player Search** - Must build from rosters (like NBA)
+2. **Position-Specific Stats** - QB ≠ RB ≠ WR stats
+3. **Week-Based Schedule** - Different from MLB/NBA date-based
+4. **Smaller Roster** - ~53 active players per team
+5. **Stat Parsing** - Statistics embedded in player objects
+6. **Game Status** - Need to handle scheduled, live, final states
+
+---
+
+## 📈 Estimated Effort
+
+**Time**: 3-4 days  
+**Complexity**: Medium (similar to NBA)  
+**Dependencies**: Phase 4 universal tools complete  
+**Test Coverage**: 10+ tests (similar to NBA/MLB)
+
+---
+
+## � API Parameters Reference
+
+### Season Types
+- `1` - Preseason
+- `2` - Regular Season
+- `3` - Postseason
+- `4` - Off-season
+
+### Conference/Group IDs
+- `7` - NFC
+- `8` - AFC
+
+### Week Numbers
+- Regular Season: 1-18
+- Playoffs: Wild Card (19), Divisional (20), Conference Championship (21), Super Bowl (22)
+
+### Game Status Types
+```typescript
+type GameStatus = 
+  | "STATUS_SCHEDULED"
+  | "STATUS_IN_PROGRESS"
+  | "STATUS_HALFTIME"
+  | "STATUS_END_PERIOD"
+  | "STATUS_FINAL"
+  | "STATUS_DELAYED"
+  | "STATUS_POSTPONED";
+```
+
+---
+
+## �🔗 Resources
+
+- ⭐ **ESPN NFL API Gist** (comprehensive): https://gist.github.com/nntrn/ee26cb2a0716de0947a0a4e9a157bc1c
+- **ESPN NFL**: https://www.espn.com/nfl/
+- **NFL Official Site**: https://www.nfl.com/
+- **Pro Football Reference**: https://www.pro-football-reference.com/
+- **ESPN Hidden API Endpoints**: https://gist.github.com/akeaswaran/b48b02f1c94f873c6655e7129910fc3b
+
+---
+
+## 💡 Key Implementation Notes
+
+1. **Player Search Strategy**:
+   - Option A: Load all rosters on startup (1,700+ players), cache 24h
+   - Option B: Use search API: `https://site.web.api.espn.com/apis/common/v3/search?query={name}`
+   - Recommendation: Use search API for initial query, then load full roster for that team
+
+2. **Position-Specific Stats**:
+   - QB stats ≠ RB stats ≠ WR stats
+   - Need to handle different stat types based on player position
+   - Use `splits` endpoint for detailed positional breakdowns
+
+3. **Week-Based Schedule**:
+   - NFL uses weeks (1-18 + playoffs), not dates like MLB
+   - Need to map dates to weeks for universal interface
+   - Current week can be determined from scoreboard API
+
+4. **Game Status Handling**:
+   - Live games: poll every 10-30 seconds for updates
+   - Use XHR endpoints for faster response times during games
+   - Play-by-play available with up to 300 plays per call
+
+5. **Caching Strategy**:
+   - Teams: cache indefinitely (rarely changes)
+   - Rosters: cache 24h (changes mid-season)
+   - Schedules: cache until game starts
+   - Live scores: no caching (real-time)
+   - Player stats: cache 1h (updated after games)
+
+---
+
+**Status**: 📋 Ready for Phase 3 implementation  
+**Next Steps**: Complete Phase 4 universal tools, then implement NFL support  
+**Documentation**: Comprehensive ESPN API reference integrated ✅
+
+🏈 **Let's add NFL to the multi-sport MCP server!**

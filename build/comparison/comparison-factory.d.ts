@@ -7,7 +7,7 @@
  * Supported Leagues:
  * - MLB: Major League Baseball
  * - NBA: National Basketball Association
- * - NFL: National Football League (Phase 3 - not yet implemented)
+ * - NFL: National Football League
  */
 import { BaseComparison } from './base-comparison.js';
 import { League } from '../api/sport-api-factory.js';
@@ -18,6 +18,7 @@ import { League } from '../api/sport-api-factory.js';
 export declare class ComparisonFactory {
     private static mlbComparison;
     private static nbaComparison;
+    private static nflComparison;
     /**
      * Get comparison class for specified league
      * Creates new instance on first call, returns cached instance on subsequent calls
