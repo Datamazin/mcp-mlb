@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Multi-Sport MCP Server (MLB + NBA)
+ * Multi-Sport MCP Server (MLB + NBA + NFL)
  * 
- * This server provides comprehensive access to MLB and NBA data through the Model Context Protocol.
+ * This server provides comprehensive access to MLB, NBA, and NFL data through the Model Context Protocol.
  * It offers tools for retrieving team information, player statistics, game schedules,
  * live scores, and historical data using official APIs.
  * 
  * Supported Leagues:
  * - MLB (Major League Baseball) - MLB Stats API
  * - NBA (National Basketball Association) - NBA.com Stats API
+ * - NFL (National Football League) - ESPN NFL API
  * 
  * Resources:
  * - MLB Stats API: https://statsapi.mlb.com/
  * - MLB.com Official Site: https://www.mlb.com/
  * - NBA Stats API: https://stats.nba.com/stats/
  * - NBA.com Official Site: https://www.nba.com/
+ * - ESPN NFL API: https://site.api.espn.com/apis/site/v2/sports/football/nfl
+ * - ESPN.com Official Site: https://www.espn.com/nfl/
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -607,13 +610,13 @@ server.registerTool(
   'compare-players',
   {
     title: 'Compare Two Players (Universal)',
-    description: 'Compare statistics between two players in MLB, NBA, or NFL',
+    description: 'Compare statistics between two players in MLB, NBA, or NFL with position-specific metrics',
     inputSchema: {
       league: z.enum(['mlb', 'nba', 'nfl']).default('mlb').describe('League (mlb, nba, nfl)'),
       player1Id: z.number().describe('First player\'s ID'),
       player2Id: z.number().describe('Second player\'s ID'),
-      season: z.union([z.string(), z.number()]).default('career').describe('Season year or "career" - NBA ignores this (always career)'),
-      statGroup: z.enum(['hitting', 'pitching', 'fielding']).optional().describe('MLB only: Type of stats to compare (hitting, pitching, fielding)')
+      season: z.union([z.string(), z.number()]).optional().describe('Season year or "career" (NBA ignores season, NFL auto-detects if omitted)'),
+      statGroup: z.string().optional().describe('MLB: hitting/pitching/fielding | NFL: QB/RB/WR/TE/DE/LB/CB/S | NBA: not used')
     },
     outputSchema: {
       league: z.string(),
@@ -638,30 +641,41 @@ server.registerTool(
       summary: z.string()
     }
   },
-  async ({ league = 'mlb', player1Id, player2Id, season = 'career', statGroup }) => {
+  async ({ league = 'mlb', player1Id, player2Id, season, statGroup }) => {
     try {
       let result: any;
       let formattedText: string;
       
-      // Use factory for NBA, keep legacy for MLB
       if (league === 'mlb') {
         // MLB uses legacy comparison utils (backward compatibility)
+        const mlbStatGroup = (statGroup === 'hitting' || statGroup === 'pitching' || statGroup === 'fielding') 
+          ? statGroup 
+          : 'hitting';
         result = await comparePlayers(
           mlbClient,
           player1Id,
           player2Id,
-          season,
-          statGroup || 'hitting'
+          season || 'career',
+          mlbStatGroup
         );
-        // Format MLB result
         formattedText = formatComparisonResult(result);
+      } else if (league === 'nfl') {
+        // NFL uses new comparison factory with season and position
+        const comparison = ComparisonFactory.getComparison(league as League);
+        // Pass season as number (or undefined for auto-detect) and statGroup as position
+        const seasonYear = season && season !== 'career' ? Number(season) : undefined;
+        result = await comparison.comparePlayers(player1Id, player2Id, seasonYear, statGroup);
+        result = { league, ...result };
+        formattedText = `Player Comparison (${league.toUpperCase()})\n\n` +
+                        `${result.player1.name} vs ${result.player2.name}\n` +
+                        `Winner: ${result.overallWinner === 'player1' ? result.player1.name : result.overallWinner === 'player2' ? result.player2.name : 'TIE'}\n` +
+                        `${result.summary}\n\n` +
+                        JSON.stringify(result, null, 2);
       } else {
-        // NBA and NFL use new comparison factory
+        // NBA uses new comparison factory (always career stats)
         const comparison = ComparisonFactory.getComparison(league as League);
         result = await comparison.comparePlayers(player1Id, player2Id);
-        // Add league to result
         result = { league, ...result };
-        // Format NBA/NFL result
         formattedText = `Player Comparison (${league.toUpperCase()})\n\n` + JSON.stringify(result, null, 2);
       }
 
