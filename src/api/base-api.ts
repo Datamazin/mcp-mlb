@@ -1,0 +1,231 @@
+/**
+ * Base Sport API Client
+ * 
+ * Abstract base class that defines the common interface for all sport API clients.
+ * This provides a consistent structure across MLB, NBA, and NFL implementations.
+ * 
+ * Phase 1: Refactoring - Extract common patterns from MLB code
+ */
+
+// Using built-in fetch (Node.js 18+)
+const fetch = globalThis.fetch;
+
+/**
+ * Custom error class for Sport API errors
+ */
+export class SportAPIError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public endpoint?: string
+  ) {
+    super(message);
+    this.name = 'SportAPIError';
+  }
+}
+
+/**
+ * Generic player interface - all sports must implement this
+ */
+export interface BasePlayer {
+  id: number | string;
+  fullName: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+/**
+ * Extended player overview interface with biographical and career context
+ */
+export interface BasePlayerOverview {
+  id: number | string;
+  fullName: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  shortName?: string;
+  weight?: number;
+  height?: number;
+  age?: number;
+  birthDate?: string;
+  birthPlace?: {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  college?: string;
+  position?: string;
+  jerseyNumber?: number;
+  team?: {
+    id: string;
+    name: string;
+    abbreviation?: string;
+    displayName?: string;
+  };
+  experience?: number;
+  status?: string;
+  headshot?: string;
+  careerSummary?: {
+    seasons?: number;
+    totalGames?: number;
+    highlights?: string[];
+    awards?: string[];
+  };
+  draftInfo?: {
+    year?: number;
+    round?: number;
+    pick?: number;
+    team?: string;
+  };
+}
+
+/**
+ * Generic team interface - all sports must implement this
+ */
+export interface BaseTeam {
+  id: number | string;
+  name: string;
+  abbreviation?: string;
+  city?: string;
+}
+
+/**
+ * Generic game interface - all sports must implement this
+ */
+export interface BaseGame {
+  id: string | number;
+  gameDate: string;
+  homeTeam: BaseTeam;
+  awayTeam: BaseTeam;
+  status: string;
+  homeScore?: number;
+  awayScore?: number;
+}
+
+/**
+ * Generic schedule parameters
+ */
+export interface BaseScheduleParams {
+  startDate: string;
+  endDate: string;
+  teamId?: number | string;
+}
+
+/**
+ * Abstract Base Sport API Client
+ * 
+ * All sport-specific clients (MLB, NBA, NFL) must extend this class
+ * and implement the required abstract methods.
+ */
+export abstract class BaseSportAPI {
+  protected baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Make a generic HTTP request with error handling
+   * Protected method that can be overridden by subclasses for sport-specific headers/logic
+   */
+  protected async makeRequest(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+    const url = new URL(`${this.baseUrl}${endpoint}`);
+    
+    // Add parameters to URL
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, value.toString());
+      }
+    });
+
+    console.error(`Making request to: ${url.toString()}`);
+
+    try {
+      const response = await fetch(url.toString());
+      
+      if (!response.ok) {
+        throw new SportAPIError(
+          `API request failed: ${response.status} ${response.statusText}`,
+          response.status,
+          endpoint
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      if (error instanceof SportAPIError) {
+        throw error;
+      }
+      
+      // Handle fetch errors (network issues, etc.)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new SportAPIError(
+        `Failed to fetch from API: ${errorMessage}`,
+        undefined,
+        endpoint
+      );
+    }
+  }
+
+  /**
+   * Search for players by name
+   * Must be implemented by each sport
+   */
+  abstract searchPlayers(name: string, options?: any): Promise<BasePlayer[]>;
+
+  /**
+   * Get player statistics
+   * Must be implemented by each sport
+   */
+  abstract getPlayerStats(playerId: number | string, options?: any): Promise<any>;
+
+  /**
+   * Get all teams
+   * Must be implemented by each sport
+   */
+  abstract getTeams(options?: any): Promise<BaseTeam[]>;
+
+  /**
+   * Get team information by ID
+   * Must be implemented by each sport
+   */
+  abstract getTeamInfo(teamId: number | string, options?: any): Promise<BaseTeam>;
+
+  /**
+   * Get game schedule
+   * Must be implemented by each sport
+   */
+  abstract getSchedule(params: BaseScheduleParams): Promise<any>;
+
+  /**
+   * Get live game data
+   * Must be implemented by each sport
+   */
+  abstract getGame(gameId: string | number): Promise<BaseGame>;
+
+  /**
+   * Get player information by ID
+   * Must be implemented by each sport
+   */
+  abstract getPlayerInfo(playerId: number | string): Promise<any>;
+
+  /**
+   * Get comprehensive player overview with biographical and career context
+   * Optional method - can be implemented by sports that support ESPN overview API
+   */
+  async getPlayerOverview(playerId: number | string): Promise<BasePlayerOverview | null> {
+    // Default implementation returns null - can be overridden by sport-specific APIs
+    return null;
+  }
+}
+
+/**
+ * Sport League Enum
+ * Used by the factory to determine which API client to instantiate
+ */
+export enum SportLeague {
+  MLB = 'MLB',
+  NBA = 'NBA',
+  NFL = 'NFL'
+}
