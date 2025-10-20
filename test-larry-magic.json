@@ -1,0 +1,15 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "compare-players-by-name",
+    "arguments": {
+      "league": "nba",
+      "player1Name": "Larry Bird",
+      "player2Name": "Magic Johnson",
+      "season": "career",
+      "activeStatus": "Both"
+    }
+  }
+}
