@@ -30,6 +30,7 @@ import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import fs from 'fs';
 import path from 'path';
 import { registerGetAllLiveScoresTool } from './tools/get-all-live-scores.js';
+import { registerGetTodaysNFLHighlightsTool } from './tools/get-todays-nfl-highlights.js';
 const MLB_API_BASE = 'https://statsapi.mlb.com/api/v1';
 // Game Type Constants - Comprehensive MLB Game Type Support
 const GAME_TYPES = {
@@ -1968,6 +1969,7 @@ server.registerTool('get-mlb-meta', {
 });
 // Register the get-all-live-scores tool with real MLB API client
 registerGetAllLiveScoresTool(server, mlbClient);
+registerGetTodaysNFLHighlightsTool(server);
 /**
  * Main function to start the server
  */

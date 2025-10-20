@@ -35,6 +35,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { registerGetAllLiveScoresTool } from './tools/get-all-live-scores.js';
+import { registerGetTodaysNFLHighlightsTool } from './tools/get-todays-nfl-highlights.js';
 
 
 const MLB_API_BASE = 'https://statsapi.mlb.com/api/v1';
@@ -2238,6 +2239,7 @@ server.registerTool(
 
 // Register the get-all-live-scores tool with real MLB API client
 registerGetAllLiveScoresTool(server, mlbClient);
+registerGetTodaysNFLHighlightsTool(server);
 
 /**
  * Main function to start the server

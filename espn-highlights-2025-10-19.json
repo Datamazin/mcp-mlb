@@ -1,0 +1,2045 @@
+{
+  "date": "2025-10-19",
+  "games": [
+    {
+      "gameId": "401772635",
+      "status": "STATUS_FINAL",
+      "name": "Los Angeles Rams at Jacksonville Jaguars",
+      "shortName": "LAR VS JAX",
+      "venue": "Wembley Stadium",
+      "competitors": [
+        {
+          "id": "30",
+          "team": "Jacksonville Jaguars",
+          "abbreviation": "JAX",
+          "score": "7",
+          "homeAway": "home"
+        },
+        {
+          "id": "14",
+          "team": "Los Angeles Rams",
+          "abbreviation": "LAR",
+          "score": "35",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Matthew Stafford",
+          "team": "Los Angeles Rams",
+          "stats": {
+            "passYds": 182,
+            "passTD": 5,
+            "passINT": 0,
+            "rushYds": 1,
+            "rushTD": 0,
+            "carries": 2
+          },
+          "fantasyPoints": 27.4
+        },
+        {
+          "name": "Davante Adams",
+          "team": "Los Angeles Rams",
+          "stats": {
+            "recYds": 35,
+            "recTD": 3,
+            "rec": 5
+          },
+          "fantasyPoints": 26.5
+        },
+        {
+          "name": "Travis Hunter",
+          "team": "Jacksonville Jaguars",
+          "stats": {
+            "rushYds": 0,
+            "rushTD": 0,
+            "carries": 1,
+            "recYds": 101,
+            "recTD": 1,
+            "rec": 8
+          },
+          "fantasyPoints": 24.1
+        },
+        {
+          "name": "Trevor Lawrence",
+          "team": "Jacksonville Jaguars",
+          "stats": {
+            "passYds": 296,
+            "passTD": 1,
+            "passINT": 0,
+            "rushYds": 18,
+            "rushTD": 0,
+            "carries": 2
+          },
+          "fantasyPoints": 17.6
+        },
+        {
+          "name": "Parker Washington",
+          "team": "Jacksonville Jaguars",
+          "stats": {
+            "rushYds": 10,
+            "rushTD": 0,
+            "carries": 3,
+            "recYds": 52,
+            "recTD": 0,
+            "rec": 4
+          },
+          "fantasyPoints": 10.2
+        }
+      ],
+      "qbLeader": {
+        "name": "Trevor Lawrence",
+        "team": "Jacksonville Jaguars",
+        "stats": {
+          "passYds": 296,
+          "passTD": 1,
+          "passINT": 0,
+          "rushYds": 18,
+          "rushTD": 0,
+          "carries": 2
+        },
+        "fantasyPoints": 17.6
+      },
+      "rushLeader": {
+        "name": "Kyren Williams",
+        "team": "Los Angeles Rams",
+        "stats": {
+          "rushYds": 54,
+          "rushTD": 0,
+          "carries": 12,
+          "recYds": 11,
+          "recTD": 0,
+          "rec": 2
+        },
+        "fantasyPoints": 8.5
+      },
+      "recLeader": {
+        "name": "Travis Hunter",
+        "team": "Jacksonville Jaguars",
+        "stats": {
+          "rushYds": 0,
+          "rushTD": 0,
+          "carries": 1,
+          "recYds": 101,
+          "recTD": 1,
+          "rec": 8
+        },
+        "fantasyPoints": 24.1
+      },
+      "scoringPlays": [
+        {
+          "clock": "6:38",
+          "period": "Q1",
+          "text": "Konata Mumpfield 5 Yd pass from Matthew Stafford (Joshua Karty Kick)",
+          "team": "Los Angeles Rams"
+        },
+        {
+          "clock": "1:51",
+          "period": "Q1",
+          "text": "Davante Adams 2 Yd pass from Matthew Stafford (Joshua Karty Kick)",
+          "team": "Los Angeles Rams"
+        },
+        {
+          "clock": "4:37",
+          "period": "Q2",
+          "text": "Davante Adams 1 Yd pass from Matthew Stafford (Joshua Karty Kick)",
+          "team": "Los Angeles Rams"
+        },
+        {
+          "clock": "11:11",
+          "period": "Q4",
+          "text": "Terrance Ferguson 31 Yd pass from Matthew Stafford (Joshua Karty Kick)",
+          "team": "Los Angeles Rams"
+        },
+        {
+          "clock": "9:06",
+          "period": "Q4",
+          "text": "Travis Hunter 34 Yd pass from Trevor Lawrence (Cam Little Kick)",
+          "team": "Jacksonville Jaguars"
+        },
+        {
+          "clock": "4:58",
+          "period": "Q4",
+          "text": "Davante Adams 1 Yd pass from Matthew Stafford (Joshua Karty Kick)",
+          "team": "Los Angeles Rams"
+        }
+      ]
+    },
+    {
+      "gameId": "401772861",
+      "status": "STATUS_FINAL",
+      "name": "New Orleans Saints at Chicago Bears",
+      "shortName": "NO @ CHI",
+      "venue": "Soldier Field",
+      "competitors": [
+        {
+          "id": "3",
+          "team": "Chicago Bears",
+          "abbreviation": "CHI",
+          "score": "26",
+          "homeAway": "home"
+        },
+        {
+          "id": "18",
+          "team": "New Orleans Saints",
+          "abbreviation": "NO",
+          "score": "14",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Chris Olave",
+          "team": "New Orleans Saints",
+          "stats": {
+            "recYds": 98,
+            "recTD": 2,
+            "rec": 5
+          },
+          "fantasyPoints": 26.8
+        },
+        {
+          "name": "D'Andre Swift",
+          "team": "Chicago Bears",
+          "stats": {
+            "rushYds": 124,
+            "rushTD": 1,
+            "carries": 19,
+            "recYds": 14,
+            "recTD": 0,
+            "rec": 1
+          },
+          "fantasyPoints": 20.8
+        },
+        {
+          "name": "Kyle Monangai",
+          "team": "Chicago Bears",
+          "stats": {
+            "rushYds": 81,
+            "rushTD": 1,
+            "carries": 13,
+            "recYds": 13,
+            "recTD": 0,
+            "rec": 2
+          },
+          "fantasyPoints": 17.4
+        },
+        {
+          "name": "Juwan Johnson",
+          "team": "New Orleans Saints",
+          "stats": {
+            "recYds": 79,
+            "recTD": 0,
+            "rec": 5
+          },
+          "fantasyPoints": 12.9
+        },
+        {
+          "name": "Spencer Rattler",
+          "team": "New Orleans Saints",
+          "stats": {
+            "passYds": 233,
+            "passTD": 2,
+            "passINT": 3,
+            "rushYds": 12,
+            "rushTD": 0,
+            "carries": 2
+          },
+          "fantasyPoints": 12.5
+        }
+      ],
+      "qbLeader": {
+        "name": "Spencer Rattler",
+        "team": "New Orleans Saints",
+        "stats": {
+          "passYds": 233,
+          "passTD": 2,
+          "passINT": 3,
+          "rushYds": 12,
+          "rushTD": 0,
+          "carries": 2
+        },
+        "fantasyPoints": 12.5
+      },
+      "rushLeader": {
+        "name": "D'Andre Swift",
+        "team": "Chicago Bears",
+        "stats": {
+          "rushYds": 124,
+          "rushTD": 1,
+          "carries": 19,
+          "recYds": 14,
+          "recTD": 0,
+          "rec": 1
+        },
+        "fantasyPoints": 20.8
+      },
+      "recLeader": {
+        "name": "Chris Olave",
+        "team": "New Orleans Saints",
+        "stats": {
+          "recYds": 98,
+          "recTD": 2,
+          "rec": 5
+        },
+        "fantasyPoints": 26.8
+      },
+      "scoringPlays": [
+        {
+          "clock": "9:34",
+          "period": "Q1",
+          "text": "Jake Moody 27 Yd Field Goal",
+          "team": "Chicago Bears"
+        },
+        {
+          "clock": "14:06",
+          "period": "Q2",
+          "text": "Jake Moody 39 Yd Field Goal",
+          "team": "Chicago Bears"
+        },
+        {
+          "clock": "9:05",
+          "period": "Q2",
+          "text": "D'Andre Swift 11 Yd Rush (Jake Moody Kick)",
+          "team": "Chicago Bears"
+        },
+        {
+          "clock": "2:51",
+          "period": "Q2",
+          "text": "Kyle Monangai 1 Yd Rush (Jake Moody Kick)",
+          "team": "Chicago Bears"
+        },
+        {
+          "clock": "0:22",
+          "period": "Q2",
+          "text": "Chris Olave 21 Yd pass from Spencer Rattler (Blake Grupe Kick)",
+          "team": "New Orleans Saints"
+        },
+        {
+          "clock": "9:40",
+          "period": "Q3",
+          "text": "Chris Olave 14 Yd pass from Spencer Rattler (Blake Grupe Kick)",
+          "team": "New Orleans Saints"
+        },
+        {
+          "clock": "4:07",
+          "period": "Q3",
+          "text": "Jake Moody 24 Yd Field Goal",
+          "team": "Chicago Bears"
+        },
+        {
+          "clock": "6:22",
+          "period": "Q4",
+          "text": "Jake Moody 33 Yd Field Goal",
+          "team": "Chicago Bears"
+        }
+      ]
+    },
+    {
+      "gameId": "401772754",
+      "status": "STATUS_FINAL",
+      "name": "Miami Dolphins at Cleveland Browns",
+      "shortName": "MIA @ CLE",
+      "venue": "Huntington Bank Field",
+      "competitors": [
+        {
+          "id": "5",
+          "team": "Cleveland Browns",
+          "abbreviation": "CLE",
+          "score": "31",
+          "homeAway": "home"
+        },
+        {
+          "id": "15",
+          "team": "Miami Dolphins",
+          "abbreviation": "MIA",
+          "score": "6",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Quinshon Judkins",
+          "team": "Cleveland Browns",
+          "stats": {
+            "rushYds": 84,
+            "rushTD": 3,
+            "carries": 25
+          },
+          "fantasyPoints": 26.4
+        },
+        {
+          "name": "De'Von Achane",
+          "team": "Miami Dolphins",
+          "stats": {
+            "rushYds": 82,
+            "rushTD": 0,
+            "carries": 13,
+            "recYds": 16,
+            "recTD": 0,
+            "rec": 3
+          },
+          "fantasyPoints": 12.8
+        },
+        {
+          "name": "Malik Washington",
+          "team": "Miami Dolphins",
+          "stats": {
+            "recYds": 30,
+            "recTD": 0,
+            "rec": 5
+          },
+          "fantasyPoints": 8
+        },
+        {
+          "name": "Harold Fannin Jr.",
+          "team": "Cleveland Browns",
+          "stats": {
+            "recYds": 36,
+            "recTD": 0,
+            "rec": 4
+          },
+          "fantasyPoints": 7.6
+        },
+        {
+          "name": "Dee Eskridge",
+          "team": "Miami Dolphins",
+          "stats": {
+            "recYds": 45,
+            "recTD": 0,
+            "rec": 2
+          },
+          "fantasyPoints": 6.5
+        }
+      ],
+      "qbLeader": {
+        "name": "Dillon Gabriel",
+        "team": "Cleveland Browns",
+        "stats": {
+          "passYds": 116,
+          "passTD": 0,
+          "passINT": 0,
+          "rushYds": 12,
+          "rushTD": 0,
+          "carries": 4
+        },
+        "fantasyPoints": 5.8
+      },
+      "rushLeader": {
+        "name": "Quinshon Judkins",
+        "team": "Cleveland Browns",
+        "stats": {
+          "rushYds": 84,
+          "rushTD": 3,
+          "carries": 25
+        },
+        "fantasyPoints": 26.4
+      },
+      "recLeader": {
+        "name": "Dee Eskridge",
+        "team": "Miami Dolphins",
+        "stats": {
+          "recYds": 45,
+          "recTD": 0,
+          "rec": 2
+        },
+        "fantasyPoints": 6.5
+      },
+      "scoringPlays": [
+        {
+          "clock": "2:17",
+          "period": "Q1",
+          "text": "Andre Szmyt 30 Yd Field Goal",
+          "team": "Cleveland Browns"
+        },
+        {
+          "clock": "14:14",
+          "period": "Q2",
+          "text": "Riley Patterson 33 Yd Field Goal ",
+          "team": "Miami Dolphins"
+        },
+        {
+          "clock": "11:19",
+          "period": "Q2",
+          "text": "Quinshon Judkins 46 Yd Rush (Andre Szmyt Kick)",
+          "team": "Cleveland Browns"
+        },
+        {
+          "clock": "6:03",
+          "period": "Q2",
+          "text": "Quinshon Judkins 3 Yd Rush (Andre Szmyt Kick)",
+          "team": "Cleveland Browns"
+        },
+        {
+          "clock": "0:00",
+          "period": "Q2",
+          "text": "Riley Patterson 26 Yd Field Goal",
+          "team": "Miami Dolphins"
+        },
+        {
+          "clock": "14:48",
+          "period": "Q3",
+          "text": "Tyson Campbell 34 Yd Interception Return (Andre Szmyt Kick)",
+          "team": "Cleveland Browns"
+        },
+        {
+          "clock": "10:56",
+          "period": "Q4",
+          "text": "Quinshon Judkins 2 Yd Rush (Andre Szmyt Kick)",
+          "team": "Cleveland Browns"
+        }
+      ]
+    },
+    {
+      "gameId": "401772755",
+      "status": "STATUS_FINAL",
+      "name": "New England Patriots at Tennessee Titans",
+      "shortName": "NE @ TEN",
+      "venue": "Nissan Stadium",
+      "competitors": [
+        {
+          "id": "10",
+          "team": "Tennessee Titans",
+          "abbreviation": "TEN",
+          "score": "13",
+          "homeAway": "home"
+        },
+        {
+          "id": "17",
+          "team": "New England Patriots",
+          "abbreviation": "NE",
+          "score": "31",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Drake Maye",
+          "team": "New England Patriots",
+          "stats": {
+            "passYds": 222,
+            "passTD": 2,
+            "passINT": 0,
+            "rushYds": 62,
+            "rushTD": 0,
+            "carries": 8
+          },
+          "fantasyPoints": 23.1
+        },
+        {
+          "name": "Chimere Dike",
+          "team": "Tennessee Titans",
+          "stats": {
+            "rushYds": -1,
+            "rushTD": 0,
+            "carries": 1,
+            "recYds": 70,
+            "recTD": 1,
+            "rec": 4
+          },
+          "fantasyPoints": 16.9
+        },
+        {
+          "name": "Rhamondre Stevenson",
+          "team": "New England Patriots",
+          "stats": {
+            "rushYds": 88,
+            "rushTD": 1,
+            "carries": 18,
+            "recYds": 0,
+            "recTD": 0,
+            "rec": 2
+          },
+          "fantasyPoints": 16.8
+        },
+        {
+          "name": "Stefon Diggs",
+          "team": "New England Patriots",
+          "stats": {
+            "recYds": 69,
+            "recTD": 0,
+            "rec": 7
+          },
+          "fantasyPoints": 13.9
+        },
+        {
+          "name": "Kayshon Boutte",
+          "team": "New England Patriots",
+          "stats": {
+            "recYds": 55,
+            "recTD": 1,
+            "rec": 2
+          },
+          "fantasyPoints": 13.5
+        }
+      ],
+      "qbLeader": {
+        "name": "Cam Ward",
+        "team": "Tennessee Titans",
+        "stats": {
+          "passYds": 255,
+          "passTD": 1,
+          "passINT": 1
+        },
+        "fantasyPoints": 12.2
+      },
+      "rushLeader": {
+        "name": "Rhamondre Stevenson",
+        "team": "New England Patriots",
+        "stats": {
+          "rushYds": 88,
+          "rushTD": 1,
+          "carries": 18,
+          "recYds": 0,
+          "recTD": 0,
+          "rec": 2
+        },
+        "fantasyPoints": 16.8
+      },
+      "recLeader": {
+        "name": "Chimere Dike",
+        "team": "Tennessee Titans",
+        "stats": {
+          "rushYds": -1,
+          "rushTD": 0,
+          "carries": 1,
+          "recYds": 70,
+          "recTD": 1,
+          "rec": 4
+        },
+        "fantasyPoints": 16.9
+      },
+      "scoringPlays": [
+        {
+          "clock": "12:20",
+          "period": "Q1",
+          "text": "Joey Slye 49 Yd Field Goal",
+          "team": "Tennessee Titans"
+        },
+        {
+          "clock": "6:46",
+          "period": "Q1",
+          "text": "Andy Borregales 36 Yd Field Goal",
+          "team": "New England Patriots"
+        },
+        {
+          "clock": "5:04",
+          "period": "Q1",
+          "text": "Chimere Dike 38 Yd pass from Cam Ward (Joey Slye Kick)",
+          "team": "Tennessee Titans"
+        },
+        {
+          "clock": "5:34",
+          "period": "Q2",
+          "text": "Austin Hooper 3 Yd pass from Drake Maye (Andy Borregales Kick)",
+          "team": "New England Patriots"
+        },
+        {
+          "clock": "1:48",
+          "period": "Q2",
+          "text": "Joey Slye 50 Yd Field Goal",
+          "team": "Tennessee Titans"
+        },
+        {
+          "clock": "0:49",
+          "period": "Q2",
+          "text": "Kayshon Boutte 39 Yd pass from Drake Maye (Andy Borregales Kick)",
+          "team": "New England Patriots"
+        },
+        {
+          "clock": "7:31",
+          "period": "Q3",
+          "text": "Rhamondre Stevenson 4 Yd Rush (Andy Borregales Kick)",
+          "team": "New England Patriots"
+        },
+        {
+          "clock": "7:20",
+          "period": "Q3",
+          "text": "K'Lavon Chaisson 4 Yd Fumble Recovery (Andy Borregales Kick)",
+          "team": "New England Patriots"
+        }
+      ]
+    },
+    {
+      "gameId": "401772753",
+      "status": "STATUS_FINAL",
+      "name": "Las Vegas Raiders at Kansas City Chiefs",
+      "shortName": "LV @ KC",
+      "venue": "GEHA Field at Arrowhead Stadium",
+      "competitors": [
+        {
+          "id": "12",
+          "team": "Kansas City Chiefs",
+          "abbreviation": "KC",
+          "score": "31",
+          "homeAway": "home"
+        },
+        {
+          "id": "13",
+          "team": "Las Vegas Raiders",
+          "abbreviation": "LV",
+          "score": "0",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Patrick Mahomes",
+          "team": "Kansas City Chiefs",
+          "stats": {
+            "passYds": 286,
+            "passTD": 3,
+            "passINT": 0,
+            "rushYds": 28,
+            "rushTD": 0,
+            "carries": 4
+          },
+          "fantasyPoints": 26.2
+        },
+        {
+          "name": "Rashee Rice",
+          "team": "Kansas City Chiefs",
+          "stats": {
+            "recYds": 42,
+            "recTD": 2,
+            "rec": 7
+          },
+          "fantasyPoints": 23.2
+        },
+        {
+          "name": "Brashard Smith",
+          "team": "Kansas City Chiefs",
+          "stats": {
+            "rushYds": 39,
+            "rushTD": 0,
+            "carries": 14,
+            "recYds": 42,
+            "recTD": 0,
+            "rec": 5
+          },
+          "fantasyPoints": 13.1
+        },
+        {
+          "name": "Isiah Pacheco",
+          "team": "Kansas City Chiefs",
+          "stats": {
+            "rushYds": 57,
+            "rushTD": 1,
+            "carries": 15,
+            "recYds": -3,
+            "recTD": 0,
+            "rec": 1
+          },
+          "fantasyPoints": 12.4
+        },
+        {
+          "name": "Hollywood Brown",
+          "team": "Kansas City Chiefs",
+          "stats": {
+            "recYds": 14,
+            "recTD": 1,
+            "rec": 2
+          },
+          "fantasyPoints": 9.4
+        }
+      ],
+      "qbLeader": {
+        "name": "Patrick Mahomes",
+        "team": "Kansas City Chiefs",
+        "stats": {
+          "passYds": 286,
+          "passTD": 3,
+          "passINT": 0,
+          "rushYds": 28,
+          "rushTD": 0,
+          "carries": 4
+        },
+        "fantasyPoints": 26.2
+      },
+      "rushLeader": {
+        "name": "Isiah Pacheco",
+        "team": "Kansas City Chiefs",
+        "stats": {
+          "rushYds": 57,
+          "rushTD": 1,
+          "carries": 15,
+          "recYds": -3,
+          "recTD": 0,
+          "rec": 1
+        },
+        "fantasyPoints": 12.4
+      },
+      "recLeader": {
+        "name": "Travis Kelce",
+        "team": "Kansas City Chiefs",
+        "stats": {
+          "recYds": 54,
+          "recTD": 0,
+          "rec": 3
+        },
+        "fantasyPoints": 8.4
+      },
+      "scoringPlays": [
+        {
+          "clock": "5:58",
+          "period": "Q1",
+          "text": "Rashee Rice 2 Yd pass from Patrick Mahomes (Harrison Butker Kick)",
+          "team": "Kansas City Chiefs"
+        },
+        {
+          "clock": "9:17",
+          "period": "Q2",
+          "text": "Hollywood Brown 8 Yd pass from Patrick Mahomes (Harrison Butker Kick)",
+          "team": "Kansas City Chiefs"
+        },
+        {
+          "clock": "0:10",
+          "period": "Q2",
+          "text": "Rashee Rice 3 Yd pass from Patrick Mahomes (Harrison Butker Kick)",
+          "team": "Kansas City Chiefs"
+        },
+        {
+          "clock": "9:00",
+          "period": "Q3",
+          "text": "Isiah Pacheco 7 Yd Rush (Harrison Butker Kick)",
+          "team": "Kansas City Chiefs"
+        },
+        {
+          "clock": "2:36",
+          "period": "Q3",
+          "text": "Harrison Butker 38 Yd Field Goal",
+          "team": "Kansas City Chiefs"
+        }
+      ]
+    },
+    {
+      "gameId": "401772862",
+      "status": "STATUS_FINAL",
+      "name": "Philadelphia Eagles at Minnesota Vikings",
+      "shortName": "PHI @ MIN",
+      "venue": "U.S. Bank Stadium",
+      "competitors": [
+        {
+          "id": "16",
+          "team": "Minnesota Vikings",
+          "abbreviation": "MIN",
+          "score": "22",
+          "homeAway": "home"
+        },
+        {
+          "id": "21",
+          "team": "Philadelphia Eagles",
+          "abbreviation": "PHI",
+          "score": "28",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "DeVonta Smith",
+          "team": "Philadelphia Eagles",
+          "stats": {
+            "recYds": 183,
+            "recTD": 1,
+            "rec": 9
+          },
+          "fantasyPoints": 33.3
+        },
+        {
+          "name": "A.J. Brown",
+          "team": "Philadelphia Eagles",
+          "stats": {
+            "recYds": 121,
+            "recTD": 2,
+            "rec": 4
+          },
+          "fantasyPoints": 28.1
+        },
+        {
+          "name": "Jalen Hurts",
+          "team": "Philadelphia Eagles",
+          "stats": {
+            "passYds": 326,
+            "passTD": 3,
+            "passINT": 0,
+            "rushYds": -10,
+            "rushTD": 0,
+            "carries": 4
+          },
+          "fantasyPoints": 24
+        },
+        {
+          "name": "Jordan Addison",
+          "team": "Minnesota Vikings",
+          "stats": {
+            "recYds": 128,
+            "recTD": 0,
+            "rec": 9
+          },
+          "fantasyPoints": 21.8
+        },
+        {
+          "name": "Justin Jefferson",
+          "team": "Minnesota Vikings",
+          "stats": {
+            "recYds": 79,
+            "recTD": 0,
+            "rec": 5
+          },
+          "fantasyPoints": 12.9
+        }
+      ],
+      "qbLeader": {
+        "name": "Jalen Hurts",
+        "team": "Philadelphia Eagles",
+        "stats": {
+          "passYds": 326,
+          "passTD": 3,
+          "passINT": 0,
+          "rushYds": -10,
+          "rushTD": 0,
+          "carries": 4
+        },
+        "fantasyPoints": 24
+      },
+      "rushLeader": {
+        "name": "Jordan Mason",
+        "team": "Minnesota Vikings",
+        "stats": {
+          "rushYds": 57,
+          "rushTD": 1,
+          "carries": 15
+        },
+        "fantasyPoints": 11.7
+      },
+      "recLeader": {
+        "name": "DeVonta Smith",
+        "team": "Philadelphia Eagles",
+        "stats": {
+          "recYds": 183,
+          "recTD": 1,
+          "rec": 9
+        },
+        "fantasyPoints": 33.3
+      },
+      "scoringPlays": [
+        {
+          "clock": "6:59",
+          "period": "Q1",
+          "text": "A.J. Brown 37 Yd pass from Jalen Hurts (Jake Elliott Kick)",
+          "team": "Philadelphia Eagles"
+        },
+        {
+          "clock": "2:04",
+          "period": "Q1",
+          "text": "Will Reichard 59 Yd Field Goal",
+          "team": "Minnesota Vikings"
+        },
+        {
+          "clock": "13:26",
+          "period": "Q2",
+          "text": "Jalyx Hunt 42 Yd Interception Return (Jake Elliott Kick)",
+          "team": "Philadelphia Eagles"
+        },
+        {
+          "clock": "6:34",
+          "period": "Q2",
+          "text": "Will Reichard 34 Yd Field Goal",
+          "team": "Minnesota Vikings"
+        },
+        {
+          "clock": "9:02",
+          "period": "Q3",
+          "text": "Will Reichard 28 Yd Field Goal",
+          "team": "Minnesota Vikings"
+        },
+        {
+          "clock": "8:07",
+          "period": "Q3",
+          "text": "DeVonta Smith 79 Yd pass from Jalen Hurts (Jake Elliott Kick)",
+          "team": "Philadelphia Eagles"
+        },
+        {
+          "clock": "3:38",
+          "period": "Q3",
+          "text": "Jordan Mason 1 Yd Rush (Will Reichard Kick)",
+          "team": "Minnesota Vikings"
+        },
+        {
+          "clock": "10:06",
+          "period": "Q4",
+          "text": "Will Reichard 35 Yd Field Goal ",
+          "team": "Minnesota Vikings"
+        },
+        {
+          "clock": "6:35",
+          "period": "Q4",
+          "text": "A.J. Brown 26 Yd pass from Jalen Hurts (Jake Elliott Kick)",
+          "team": "Philadelphia Eagles"
+        },
+        {
+          "clock": "1:57",
+          "period": "Q4",
+          "text": "Will Reichard 29 Yd Field Goal ",
+          "team": "Minnesota Vikings"
+        }
+      ]
+    },
+    {
+      "gameId": "401772860",
+      "status": "STATUS_FINAL",
+      "name": "Carolina Panthers at New York Jets",
+      "shortName": "CAR @ NYJ",
+      "venue": "MetLife Stadium",
+      "competitors": [
+        {
+          "id": "20",
+          "team": "New York Jets",
+          "abbreviation": "NYJ",
+          "score": "6",
+          "homeAway": "home"
+        },
+        {
+          "id": "29",
+          "team": "Carolina Panthers",
+          "abbreviation": "CAR",
+          "score": "13",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Xavier Legette",
+          "team": "Carolina Panthers",
+          "stats": {
+            "recYds": 92,
+            "recTD": 1,
+            "rec": 9
+          },
+          "fantasyPoints": 24.2
+        },
+        {
+          "name": "Rico Dowdle",
+          "team": "Carolina Panthers",
+          "stats": {
+            "rushYds": 79,
+            "rushTD": 0,
+            "carries": 17,
+            "recYds": 17,
+            "recTD": 0,
+            "rec": 1
+          },
+          "fantasyPoints": 10.6
+        },
+        {
+          "name": "Bryce Young",
+          "team": "Carolina Panthers",
+          "stats": {
+            "passYds": 138,
+            "passTD": 1,
+            "passINT": 0,
+            "rushYds": 10,
+            "rushTD": 0,
+            "carries": 2
+          },
+          "fantasyPoints": 10.5
+        },
+        {
+          "name": "Tyler Johnson",
+          "team": "New York Jets",
+          "stats": {
+            "recYds": 60,
+            "recTD": 0,
+            "rec": 3
+          },
+          "fantasyPoints": 9
+        },
+        {
+          "name": "Chuba Hubbard",
+          "team": "Carolina Panthers",
+          "stats": {
+            "rushYds": 31,
+            "rushTD": 0,
+            "carries": 14,
+            "recYds": 24,
+            "recTD": 0,
+            "rec": 2
+          },
+          "fantasyPoints": 7.5
+        }
+      ],
+      "qbLeader": {
+        "name": "Bryce Young",
+        "team": "Carolina Panthers",
+        "stats": {
+          "passYds": 138,
+          "passTD": 1,
+          "passINT": 0,
+          "rushYds": 10,
+          "rushTD": 0,
+          "carries": 2
+        },
+        "fantasyPoints": 10.5
+      },
+      "rushLeader": {
+        "name": "Rico Dowdle",
+        "team": "Carolina Panthers",
+        "stats": {
+          "rushYds": 79,
+          "rushTD": 0,
+          "carries": 17,
+          "recYds": 17,
+          "recTD": 0,
+          "rec": 1
+        },
+        "fantasyPoints": 10.6
+      },
+      "recLeader": {
+        "name": "Xavier Legette",
+        "team": "Carolina Panthers",
+        "stats": {
+          "recYds": 92,
+          "recTD": 1,
+          "rec": 9
+        },
+        "fantasyPoints": 24.2
+      },
+      "scoringPlays": [
+        {
+          "clock": "5:42",
+          "period": "Q1",
+          "text": "Ryan Fitzgerald 30 Yd Field Goal ",
+          "team": "Carolina Panthers"
+        },
+        {
+          "clock": "11:02",
+          "period": "Q2",
+          "text": "Nick Folk 34 Yd Field Goal",
+          "team": "New York Jets"
+        },
+        {
+          "clock": "1:11",
+          "period": "Q2",
+          "text": "Xavier Legette 3 Yd pass from Bryce Young (Ryan Fitzgerald Kick)",
+          "team": "Carolina Panthers"
+        },
+        {
+          "clock": "10:40",
+          "period": "Q3",
+          "text": "Ryan Fitzgerald 29 Yd Field Goal",
+          "team": "Carolina Panthers"
+        },
+        {
+          "clock": "6:26",
+          "period": "Q4",
+          "text": "Nick Folk 47 Yd Field Goal ",
+          "team": "New York Jets"
+        }
+      ]
+    },
+    {
+      "gameId": "401772757",
+      "status": "STATUS_FINAL",
+      "name": "New York Giants at Denver Broncos",
+      "shortName": "NYG @ DEN",
+      "venue": "Empower Field at Mile High",
+      "competitors": [
+        {
+          "id": "7",
+          "team": "Denver Broncos",
+          "abbreviation": "DEN",
+          "score": "33",
+          "homeAway": "home"
+        },
+        {
+          "id": "19",
+          "team": "New York Giants",
+          "abbreviation": "NYG",
+          "score": "32",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Bo Nix",
+          "team": "Denver Broncos",
+          "stats": {
+            "passYds": 279,
+            "passTD": 2,
+            "passINT": 0,
+            "rushYds": 48,
+            "rushTD": 2,
+            "carries": 5
+          },
+          "fantasyPoints": 36
+        },
+        {
+          "name": "Jaxson Dart",
+          "team": "New York Giants",
+          "stats": {
+            "passYds": 283,
+            "passTD": 3,
+            "passINT": 1,
+            "rushYds": 11,
+            "rushTD": 1,
+            "carries": 5
+          },
+          "fantasyPoints": 28.4
+        },
+        {
+          "name": "Cam Skattebo",
+          "team": "New York Giants",
+          "stats": {
+            "rushYds": 60,
+            "rushTD": 0,
+            "carries": 16,
+            "recYds": 34,
+            "recTD": 1,
+            "rec": 3
+          },
+          "fantasyPoints": 18.4
+        },
+        {
+          "name": "Daniel Bellinger",
+          "team": "New York Giants",
+          "stats": {
+            "recYds": 88,
+            "recTD": 1,
+            "rec": 3
+          },
+          "fantasyPoints": 17.8
+        },
+        {
+          "name": "Marvin Mims Jr.",
+          "team": "Denver Broncos",
+          "stats": {
+            "rushYds": 13,
+            "rushTD": 0,
+            "carries": 1,
+            "recYds": 85,
+            "recTD": 0,
+            "rec": 6
+          },
+          "fantasyPoints": 15.8
+        }
+      ],
+      "qbLeader": {
+        "name": "Jaxson Dart",
+        "team": "New York Giants",
+        "stats": {
+          "passYds": 283,
+          "passTD": 3,
+          "passINT": 1,
+          "rushYds": 11,
+          "rushTD": 1,
+          "carries": 5
+        },
+        "fantasyPoints": 28.4
+      },
+      "rushLeader": {
+        "name": "J.K. Dobbins",
+        "team": "Denver Broncos",
+        "stats": {
+          "rushYds": 81,
+          "rushTD": 0,
+          "carries": 14,
+          "recYds": -1,
+          "recTD": 0,
+          "rec": 1
+        },
+        "fantasyPoints": 9
+      },
+      "recLeader": {
+        "name": "Wan'Dale Robinson",
+        "team": "New York Giants",
+        "stats": {
+          "recYds": 95,
+          "recTD": 0,
+          "rec": 6
+        },
+        "fantasyPoints": 15.5
+      },
+      "scoringPlays": [
+        {
+          "clock": "6:54",
+          "period": "Q1",
+          "text": "Daniel Bellinger 44 Yd pass from Jaxson Dart (Jude McAtamney Kick)",
+          "team": "New York Giants"
+        },
+        {
+          "clock": "8:46",
+          "period": "Q2",
+          "text": "Cam Skattebo 13 Yd pass from Jaxson Dart (Jude McAtamney PAT Failed)",
+          "team": "New York Giants"
+        },
+        {
+          "clock": "2:41",
+          "period": "Q3",
+          "text": "Tyrone Tracy Jr. 31 Yd Rush (Two-Point Pass Conversion Failed)",
+          "team": "New York Giants"
+        },
+        {
+          "clock": "14:08",
+          "period": "Q4",
+          "text": "Troy Franklin 2 Yd pass from Bo Nix (Bo Nix Pass to Courtland Sutton for Two-Point Conversion)",
+          "team": "Denver Broncos"
+        },
+        {
+          "clock": "10:14",
+          "period": "Q4",
+          "text": "Theo Johnson 41 Yd pass from Jaxson Dart (Jude McAtamney Kick)",
+          "team": "New York Giants"
+        },
+        {
+          "clock": "5:13",
+          "period": "Q4",
+          "text": "Bo Nix 7 Yd Rush (Bo Nix Pass to Troy Franklin for Two-Point Conversion)",
+          "team": "Denver Broncos"
+        },
+        {
+          "clock": "3:51",
+          "period": "Q4",
+          "text": "RJ Harvey 2 Yd pass from Bo Nix (Wil Lutz Kick)",
+          "team": "Denver Broncos"
+        },
+        {
+          "clock": "1:51",
+          "period": "Q4",
+          "text": "Bo Nix 18 Yd Rush (Wil Lutz Kick)",
+          "team": "Denver Broncos"
+        },
+        {
+          "clock": "0:37",
+          "period": "Q4",
+          "text": "Jaxson Dart 1 Yd Rush (Jude McAtamney PAT Failed)",
+          "team": "New York Giants"
+        },
+        {
+          "clock": "0:00",
+          "period": "Q4",
+          "text": "Wil Lutz 39 Yd Field Goal",
+          "team": "Denver Broncos"
+        }
+      ]
+    },
+    {
+      "gameId": "401772756",
+      "status": "STATUS_FINAL",
+      "name": "Indianapolis Colts at Los Angeles Chargers",
+      "shortName": "IND @ LAC",
+      "venue": "SoFi Stadium",
+      "competitors": [
+        {
+          "id": "24",
+          "team": "Los Angeles Chargers",
+          "abbreviation": "LAC",
+          "score": "24",
+          "homeAway": "home"
+        },
+        {
+          "id": "11",
+          "team": "Indianapolis Colts",
+          "abbreviation": "IND",
+          "score": "38",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Jonathan Taylor",
+          "team": "Indianapolis Colts",
+          "stats": {
+            "rushYds": 94,
+            "rushTD": 3,
+            "carries": 16,
+            "recYds": 38,
+            "recTD": 0,
+            "rec": 3
+          },
+          "fantasyPoints": 34.2
+        },
+        {
+          "name": "Oronde Gadsden II",
+          "team": "Los Angeles Chargers",
+          "stats": {
+            "recYds": 164,
+            "recTD": 1,
+            "rec": 7
+          },
+          "fantasyPoints": 29.4
+        },
+        {
+          "name": "Keenan Allen",
+          "team": "Los Angeles Chargers",
+          "stats": {
+            "recYds": 119,
+            "recTD": 1,
+            "rec": 11
+          },
+          "fantasyPoints": 28.9
+        },
+        {
+          "name": "Justin Herbert",
+          "team": "Los Angeles Chargers",
+          "stats": {
+            "passYds": 420,
+            "passTD": 3,
+            "passINT": 2,
+            "rushYds": 31,
+            "rushTD": 0,
+            "carries": 6
+          },
+          "fantasyPoints": 27.9
+        },
+        {
+          "name": "Daniel Jones",
+          "team": "Indianapolis Colts",
+          "stats": {
+            "passYds": 288,
+            "passTD": 2,
+            "passINT": 0,
+            "rushYds": 7,
+            "rushTD": 0,
+            "carries": 5
+          },
+          "fantasyPoints": 20.2
+        }
+      ],
+      "qbLeader": {
+        "name": "Justin Herbert",
+        "team": "Los Angeles Chargers",
+        "stats": {
+          "passYds": 420,
+          "passTD": 3,
+          "passINT": 2,
+          "rushYds": 31,
+          "rushTD": 0,
+          "carries": 6
+        },
+        "fantasyPoints": 27.9
+      },
+      "rushLeader": {
+        "name": "Jonathan Taylor",
+        "team": "Indianapolis Colts",
+        "stats": {
+          "rushYds": 94,
+          "rushTD": 3,
+          "carries": 16,
+          "recYds": 38,
+          "recTD": 0,
+          "rec": 3
+        },
+        "fantasyPoints": 34.2
+      },
+      "recLeader": {
+        "name": "Oronde Gadsden II",
+        "team": "Los Angeles Chargers",
+        "stats": {
+          "recYds": 164,
+          "recTD": 1,
+          "rec": 7
+        },
+        "fantasyPoints": 29.4
+      },
+      "scoringPlays": [
+        {
+          "clock": "12:36",
+          "period": "Q1",
+          "text": "Jonathan Taylor 23 Yd Rush (Michael Badgley PAT Failed)",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "7:35",
+          "period": "Q1",
+          "text": "Cameron Dicker 43 Yd Field Goal",
+          "team": "Los Angeles Chargers"
+        },
+        {
+          "clock": "14:54",
+          "period": "Q2",
+          "text": "Michael Pittman Jr. 4 Yd pass from Daniel Jones (Michael Badgley Kick)",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "8:56",
+          "period": "Q2",
+          "text": "Tyler Warren 5 Yd pass from Daniel Jones (Michael Badgley Kick)",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "0:00",
+          "period": "Q2",
+          "text": "Michael Badgley 36 Yd Field Goal",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "13:01",
+          "period": "Q3",
+          "text": "Quentin Johnston 7 Yd pass from Justin Herbert (Cameron Dicker Kick)",
+          "team": "Los Angeles Chargers"
+        },
+        {
+          "clock": "12:03",
+          "period": "Q3",
+          "text": "Jonathan Taylor 8 Yd Rush (Daniel Jones Pass to Michael Pittman Jr. for Two-Point Conversion)",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "6:13",
+          "period": "Q3",
+          "text": "Keenan Allen 4 Yd pass from Justin Herbert (Cameron Dicker Kick)",
+          "team": "Los Angeles Chargers"
+        },
+        {
+          "clock": "3:33",
+          "period": "Q3",
+          "text": "Jonathan Taylor 19 Yd Rush (Michael Badgley Kick)",
+          "team": "Indianapolis Colts"
+        },
+        {
+          "clock": "13:40",
+          "period": "Q4",
+          "text": "Oronde Gadsden II 15 Yd pass from Justin Herbert (Cameron Dicker Kick)",
+          "team": "Los Angeles Chargers"
+        }
+      ]
+    },
+    {
+      "gameId": "401772864",
+      "status": "STATUS_FINAL",
+      "name": "Washington Commanders at Dallas Cowboys",
+      "shortName": "WSH @ DAL",
+      "venue": "AT&T Stadium",
+      "competitors": [
+        {
+          "id": "6",
+          "team": "Dallas Cowboys",
+          "abbreviation": "DAL",
+          "score": "44",
+          "homeAway": "home"
+        },
+        {
+          "id": "28",
+          "team": "Washington Commanders",
+          "abbreviation": "WSH",
+          "score": "22",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Dak Prescott",
+          "team": "Dallas Cowboys",
+          "stats": {
+            "passYds": 264,
+            "passTD": 3,
+            "passINT": 0,
+            "rushYds": 7,
+            "rushTD": 0,
+            "carries": 5
+          },
+          "fantasyPoints": 23.3
+        },
+        {
+          "name": "CeeDee Lamb",
+          "team": "Dallas Cowboys",
+          "stats": {
+            "recYds": 110,
+            "recTD": 1,
+            "rec": 5
+          },
+          "fantasyPoints": 22
+        },
+        {
+          "name": "Jake Ferguson",
+          "team": "Dallas Cowboys",
+          "stats": {
+            "recYds": 29,
+            "recTD": 2,
+            "rec": 7
+          },
+          "fantasyPoints": 21.9
+        },
+        {
+          "name": "Jayden Daniels",
+          "team": "Washington Commanders",
+          "stats": {
+            "passYds": 156,
+            "passTD": 1,
+            "passINT": 0,
+            "rushYds": 35,
+            "rushTD": 1,
+            "carries": 8
+          },
+          "fantasyPoints": 19.7
+        },
+        {
+          "name": "Javonte Williams",
+          "team": "Dallas Cowboys",
+          "stats": {
+            "rushYds": 116,
+            "rushTD": 1,
+            "carries": 19,
+            "recYds": 2,
+            "recTD": 0,
+            "rec": 1
+          },
+          "fantasyPoints": 18.8
+        }
+      ],
+      "qbLeader": {
+        "name": "Dak Prescott",
+        "team": "Dallas Cowboys",
+        "stats": {
+          "passYds": 264,
+          "passTD": 3,
+          "passINT": 0,
+          "rushYds": 7,
+          "rushTD": 0,
+          "carries": 5
+        },
+        "fantasyPoints": 23.3
+      },
+      "rushLeader": {
+        "name": "Javonte Williams",
+        "team": "Dallas Cowboys",
+        "stats": {
+          "rushYds": 116,
+          "rushTD": 1,
+          "carries": 19,
+          "recYds": 2,
+          "recTD": 0,
+          "rec": 1
+        },
+        "fantasyPoints": 18.8
+      },
+      "recLeader": {
+        "name": "CeeDee Lamb",
+        "team": "Dallas Cowboys",
+        "stats": {
+          "recYds": 110,
+          "recTD": 1,
+          "rec": 5
+        },
+        "fantasyPoints": 22
+      },
+      "scoringPlays": [
+        {
+          "clock": "13:05",
+          "period": "Q1",
+          "text": "Javonte Williams 2 Yd Rush (Brandon Aubrey Kick)",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "11:23",
+          "period": "Q1",
+          "text": "Daron Payne Safety",
+          "team": "Washington Commanders"
+        },
+        {
+          "clock": "7:38",
+          "period": "Q1",
+          "text": "Zach Ertz 5 Yd pass from Jayden Daniels (Two-Point Run Conversion Failed)",
+          "team": "Washington Commanders"
+        },
+        {
+          "clock": "6:14",
+          "period": "Q1",
+          "text": "Brandon Aubrey 47 Yd Field Goal",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "4:27",
+          "period": "Q1",
+          "text": "CeeDee Lamb 74 Yd pass from Dak Prescott (Brandon Aubrey Kick)",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "7:22",
+          "period": "Q2",
+          "text": "Brandon Aubrey 61 Yd Field Goal",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "0:45",
+          "period": "Q2",
+          "text": "Jayden Daniels 1 Yd Rush (Matt Gay Kick)",
+          "team": "Washington Commanders"
+        },
+        {
+          "clock": "0:10",
+          "period": "Q2",
+          "text": "Jake Ferguson 2 Yd pass from Dak Prescott (Brandon Aubrey Kick)",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "7:44",
+          "period": "Q3",
+          "text": "Jake Ferguson 5 Yd pass from Dak Prescott (Brandon Aubrey Kick)",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "5:31",
+          "period": "Q3",
+          "text": "DaRon Bland 68 Yd Interception Return (Brandon Aubrey Kick)",
+          "team": "Dallas Cowboys"
+        },
+        {
+          "clock": "2:35",
+          "period": "Q3",
+          "text": "Chris Rodriguez Jr. 3 Yd Rush (Matt Gay Kick)",
+          "team": "Washington Commanders"
+        },
+        {
+          "clock": "12:45",
+          "period": "Q4",
+          "text": "Brandon Aubrey 29 Yd Field Goal",
+          "team": "Dallas Cowboys"
+        }
+      ]
+    },
+    {
+      "gameId": "401772863",
+      "status": "STATUS_FINAL",
+      "name": "Green Bay Packers at Arizona Cardinals",
+      "shortName": "GB @ ARI",
+      "venue": "State Farm Stadium",
+      "competitors": [
+        {
+          "id": "22",
+          "team": "Arizona Cardinals",
+          "abbreviation": "ARI",
+          "score": "23",
+          "homeAway": "home"
+        },
+        {
+          "id": "9",
+          "team": "Green Bay Packers",
+          "abbreviation": "GB",
+          "score": "27",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Trey McBride",
+          "team": "Arizona Cardinals",
+          "stats": {
+            "recYds": 74,
+            "recTD": 2,
+            "rec": 10
+          },
+          "fantasyPoints": 29.4
+        },
+        {
+          "name": "Jacoby Brissett",
+          "team": "Arizona Cardinals",
+          "stats": {
+            "passYds": 279,
+            "passTD": 2,
+            "passINT": 0,
+            "rushYds": 26,
+            "rushTD": 0,
+            "carries": 6
+          },
+          "fantasyPoints": 21.8
+        },
+        {
+          "name": "Josh Jacobs",
+          "team": "Green Bay Packers",
+          "stats": {
+            "rushYds": 55,
+            "rushTD": 2,
+            "carries": 13,
+            "recYds": 3,
+            "recTD": 0,
+            "rec": 1
+          },
+          "fantasyPoints": 18.8
+        },
+        {
+          "name": "Tucker Kraft",
+          "team": "Green Bay Packers",
+          "stats": {
+            "recYds": 58,
+            "recTD": 1,
+            "rec": 5
+          },
+          "fantasyPoints": 16.8
+        },
+        {
+          "name": "Jordan Love",
+          "team": "Green Bay Packers",
+          "stats": {
+            "passYds": 179,
+            "passTD": 1,
+            "passINT": 0,
+            "rushYds": 22,
+            "rushTD": 0,
+            "carries": 4
+          },
+          "fantasyPoints": 13.4
+        }
+      ],
+      "qbLeader": {
+        "name": "Jacoby Brissett",
+        "team": "Arizona Cardinals",
+        "stats": {
+          "passYds": 279,
+          "passTD": 2,
+          "passINT": 0,
+          "rushYds": 26,
+          "rushTD": 0,
+          "carries": 6
+        },
+        "fantasyPoints": 21.8
+      },
+      "rushLeader": {
+        "name": "Bam Knight",
+        "team": "Arizona Cardinals",
+        "stats": {
+          "rushYds": 57,
+          "rushTD": 0,
+          "carries": 14,
+          "recYds": 7,
+          "recTD": 0,
+          "rec": 3
+        },
+        "fantasyPoints": 9.4
+      },
+      "recLeader": {
+        "name": "Trey McBride",
+        "team": "Arizona Cardinals",
+        "stats": {
+          "recYds": 74,
+          "recTD": 2,
+          "rec": 10
+        },
+        "fantasyPoints": 29.4
+      },
+      "scoringPlays": [
+        {
+          "clock": "7:34",
+          "period": "Q1",
+          "text": "Chad Ryland 32 Yd Field Goal",
+          "team": "Arizona Cardinals"
+        },
+        {
+          "clock": "9:06",
+          "period": "Q2",
+          "text": "Lucas Havrisik 31 Yd Field Goal",
+          "team": "Green Bay Packers"
+        },
+        {
+          "clock": "5:02",
+          "period": "Q2",
+          "text": "Chad Ryland 40 Yd Field Goal",
+          "team": "Arizona Cardinals"
+        },
+        {
+          "clock": "0:07",
+          "period": "Q2",
+          "text": "Trey McBride 15 Yd pass from Jacoby Brissett (Chad Ryland Kick)",
+          "team": "Arizona Cardinals"
+        },
+        {
+          "clock": "0:00",
+          "period": "Q2",
+          "text": "Lucas Havrisik 61 Yd Field Goal",
+          "team": "Green Bay Packers"
+        },
+        {
+          "clock": "9:47",
+          "period": "Q3",
+          "text": "Josh Jacobs 7 Yd Rush (Lucas Havrisik Kick)",
+          "team": "Green Bay Packers"
+        },
+        {
+          "clock": "4:17",
+          "period": "Q3",
+          "text": "Trey McBride 12 Yd pass from Jacoby Brissett (Chad Ryland Kick)",
+          "team": "Arizona Cardinals"
+        },
+        {
+          "clock": "14:55",
+          "period": "Q4",
+          "text": "Tucker Kraft 7 Yd pass from Jordan Love (Lucas Havrisik Kick)",
+          "team": "Green Bay Packers"
+        },
+        {
+          "clock": "9:01",
+          "period": "Q4",
+          "text": "Chad Ryland 39 Yd Field Goal",
+          "team": "Arizona Cardinals"
+        },
+        {
+          "clock": "1:50",
+          "period": "Q4",
+          "text": "Josh Jacobs 1 Yd Rush (Lucas Havrisik Kick)",
+          "team": "Green Bay Packers"
+        }
+      ]
+    },
+    {
+      "gameId": "401772924",
+      "status": "STATUS_FINAL",
+      "name": "Atlanta Falcons at San Francisco 49ers",
+      "shortName": "ATL @ SF",
+      "venue": "Levi's Stadium",
+      "competitors": [
+        {
+          "id": "25",
+          "team": "San Francisco 49ers",
+          "abbreviation": "SF",
+          "score": "20",
+          "homeAway": "home"
+        },
+        {
+          "id": "1",
+          "team": "Atlanta Falcons",
+          "abbreviation": "ATL",
+          "score": "10",
+          "homeAway": "away"
+        }
+      ],
+      "top5": [
+        {
+          "name": "Christian McCaffrey",
+          "team": "San Francisco 49ers",
+          "stats": {
+            "rushYds": 129,
+            "rushTD": 2,
+            "carries": 24,
+            "recYds": 72,
+            "recTD": 0,
+            "rec": 7
+          },
+          "fantasyPoints": 39.1
+        },
+        {
+          "name": "Bijan Robinson",
+          "team": "Atlanta Falcons",
+          "stats": {
+            "rushYds": 40,
+            "rushTD": 0,
+            "carries": 14,
+            "recYds": 52,
+            "recTD": 1,
+            "rec": 6
+          },
+          "fantasyPoints": 21.2
+        },
+        {
+          "name": "Michael Penix Jr.",
+          "team": "Atlanta Falcons",
+          "stats": {
+            "passYds": 241,
+            "passTD": 1,
+            "passINT": 0,
+            "rushYds": 6,
+            "rushTD": 0,
+            "carries": 2
+          },
+          "fantasyPoints": 14.2
+        },
+        {
+          "name": "Kyle Pitts Sr.",
+          "team": "Atlanta Falcons",
+          "stats": {
+            "recYds": 62,
+            "recTD": 0,
+            "rec": 7
+          },
+          "fantasyPoints": 13.2
+        },
+        {
+          "name": "Darnell Mooney",
+          "team": "Atlanta Falcons",
+          "stats": {
+            "recYds": 68,
+            "recTD": 0,
+            "rec": 3
+          },
+          "fantasyPoints": 9.8
+        }
+      ],
+      "qbLeader": {
+        "name": "Michael Penix Jr.",
+        "team": "Atlanta Falcons",
+        "stats": {
+          "passYds": 241,
+          "passTD": 1,
+          "passINT": 0,
+          "rushYds": 6,
+          "rushTD": 0,
+          "carries": 2
+        },
+        "fantasyPoints": 14.2
+      },
+      "rushLeader": {
+        "name": "Christian McCaffrey",
+        "team": "San Francisco 49ers",
+        "stats": {
+          "rushYds": 129,
+          "rushTD": 2,
+          "carries": 24,
+          "recYds": 72,
+          "recTD": 0,
+          "rec": 7
+        },
+        "fantasyPoints": 39.1
+      },
+      "recLeader": {
+        "name": "Christian McCaffrey",
+        "team": "San Francisco 49ers",
+        "stats": {
+          "rushYds": 129,
+          "rushTD": 2,
+          "carries": 24,
+          "recYds": 72,
+          "recTD": 0,
+          "rec": 7
+        },
+        "fantasyPoints": 39.1
+      },
+      "scoringPlays": [
+        {
+          "clock": "12:54",
+          "period": "Q2",
+          "text": "Parker Romo 38 Yd Field Goal",
+          "team": "Atlanta Falcons"
+        },
+        {
+          "clock": "1:48",
+          "period": "Q2",
+          "text": "Christian McCaffrey 1 Yd Rush (Eddy Pineiro Kick)",
+          "team": "San Francisco 49ers"
+        },
+        {
+          "clock": "0:38",
+          "period": "Q2",
+          "text": "Eddy Pineiro 55 Yd Field Goal",
+          "team": "San Francisco 49ers"
+        },
+        {
+          "clock": "10:09",
+          "period": "Q3",
+          "text": "Eddy Pineiro 43 Yd Field Goal",
+          "team": "San Francisco 49ers"
+        },
+        {
+          "clock": "6:28",
+          "period": "Q3",
+          "text": "Bijan Robinson 10 Yd pass from Michael Penix Jr. (Parker Romo Kick)",
+          "team": "Atlanta Falcons"
+        },
+        {
+          "clock": "2:26",
+          "period": "Q4",
+          "text": "Christian McCaffrey 4 Yd Rush (Eddy Pineiro Kick)",
+          "team": "San Francisco 49ers"
+        }
+      ]
+    }
+  ]
+}

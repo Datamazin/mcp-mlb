@@ -13,11 +13,11 @@ class RealMLBScraper {
     }
     async getLiveGames() {
         try {
-            // Use a valid MLB date (2024 season) since 2025-10-20 is beyond current season
-            const validMLBDate = '2024-10-19'; // Use 2024 playoff date that actually exists
+            // Get today's games
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
             const schedule = await this.mlbClient.getSchedule({
-                startDate: validMLBDate,
-                endDate: validMLBDate,
+                startDate: today,
+                endDate: today,
                 gameType: 'R' // Regular season
             });
             const games = [];
@@ -221,306 +221,53 @@ class MockNBAScraper {
         };
     }
 }
-class RealNFLScraper {
+class MockNFLScraper {
     async getLiveGames() {
-        try {
-            // Use ESPN's NFL scoreboard API - publicly accessible
-            const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard');
-            
-            if (!response.ok) {
-                throw new Error(`ESPN NFL API error: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            const games = [];
-            
-            if (data.events && data.events.length > 0) {
-                for (const event of data.events) {
-                    const competition = event.competitions[0];
-                    const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
-                    const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
-                    
-                    games.push({
-                        gameId: event.id || 'unknown',
-                        homeTeam: homeTeam?.team?.displayName || 'Unknown Home Team',
-                        awayTeam: awayTeam?.team?.displayName || 'Unknown Away Team',
-                        status: this.mapNFLStatus(competition.status?.type?.name || 'unknown'),
-                        quarter: competition.status?.period ? `${this.getQuarterName(competition.status.period)}` : 'Pregame',
-                        timeRemaining: competition.status?.displayClock || '00:00',
-                        homeScore: parseInt(homeTeam?.score || '0'),
-                        awayScore: parseInt(awayTeam?.score || '0'),
-                        venue: competition.venue?.fullName || 'Unknown Venue',
-                        attendance: competition.attendance || 0,
-                        lastPlay: this.getLastPlay(event)
-                    });
-                }
-            }
-            
-            // If no games today, return appropriate message
-            if (games.length === 0) {
-                return [{
-                    gameId: 'no-nfl-games',
-                    homeTeam: 'No NFL games',
-                    awayTeam: 'scheduled today',
-                    status: 'off-day',
-                    quarter: 'N/A',
-                    timeRemaining: 'N/A',
-                    homeScore: 0,
-                    awayScore: 0,
-                    venue: 'Check NFL schedule',
-                    attendance: 0,
-                    lastPlay: 'Visit NFL.com for current schedule'
-                }];
-            }
-            
-            return games;
-        }
-        catch (error) {
-            console.error('Error fetching real NFL games:', error);
-            return [{
-                gameId: 'nfl-error',
-                homeTeam: 'Error fetching',
-                awayTeam: 'NFL data',
-                status: 'error',
-                quarter: 'API Error',
+        return [
+            {
+                gameId: 'nfl-wk8-buf-ne',
+                homeTeam: 'New England Patriots',
+                awayTeam: 'Buffalo Bills',
+                status: 'final',
+                quarter: 'Final',
                 timeRemaining: '00:00',
-                homeScore: 0,
-                awayScore: 0,
-                venue: 'ESPN API Error',
-                attendance: 0,
-                lastPlay: error.message
-            }];
-        }
-    }
-    
-    mapNFLStatus(espnStatus) {
-        const statusMap = {
-            'STATUS_SCHEDULED': 'upcoming',
-            'STATUS_IN_PROGRESS': 'live',
-            'STATUS_FINAL': 'final',
-            'STATUS_HALFTIME': 'halftime',
-            'STATUS_POSTPONED': 'postponed',
-            'STATUS_CANCELED': 'cancelled'
-        };
-        return statusMap[espnStatus] || 'unknown';
-    }
-    
-    getQuarterName(period) {
-        const quarterMap = {
-            1: '1st Quarter',
-            2: '2nd Quarter', 
-            3: '3rd Quarter',
-            4: '4th Quarter'
-        };
-        return quarterMap[period] || period > 4 ? 'Overtime' : 'Pregame';
-    }
-    
-    getLastPlay(event) {
-        try {
-            const drives = event.competitions[0]?.drives;
-            if (drives?.current) {
-                const lastPlay = drives.current.plays?.[drives.current.plays.length - 1];
-                return lastPlay?.text || 'No play data available';
+                homeScore: 17,
+                awayScore: 24,
+                venue: 'Gillette Stadium',
+                attendance: 65878
             }
-            return 'Play data not available';
-        }
-        catch {
-            return 'Play data not available';
-        }
+        ];
     }
-
-    async getGamePlayerStats(gameId) {
-        try {
-            // Use ESPN's game summary API for detailed player stats
-            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=${gameId}`);
-            
-            if (!response.ok) {
-                throw new Error(`ESPN Game Summary API error: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            // Extract key player performances
-            const playerStats = {
-                homeTeam: data.header?.competitions?.[0]?.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Home Team',
-                awayTeam: data.header?.competitions?.[0]?.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Away Team',
-                keyPlayers: [],
-                gameStats: {
-                    totalYards: { home: 0, away: 0 },
-                    turnovers: { home: 0, away: 0 },
-                    timeOfPossession: { home: '0:00', away: '0:00' }
-                }
-            };
-
-            // Extract player statistics from boxscore
-            if (data.boxscore?.players) {
-                for (const team of data.boxscore.players) {
-                    const teamName = team.team?.displayName || 'Unknown Team';
-                    
-                    // Process different stat categories
-                    for (const statCategory of team.statistics || []) {
-                        const categoryName = statCategory.name; // passing, rushing, receiving, etc.
-                        
-                        for (const athlete of statCategory.athletes || []) {
-                            const playerName = athlete.athlete?.displayName || 'Unknown Player';
-                            const stats = athlete.stats || [];
-                            
-                            // Extract key stats based on category
-                            if (categoryName === 'passing' && stats.length >= 3) {
-                                const completions = stats[0] || '0';
-                                const attempts = stats[1] || '0';
-                                const yards = stats[2] || '0';
-                                const touchdowns = stats[3] || '0';
-                                const interceptions = stats[4] || '0';
-                                
-                                if (parseInt(yards) > 100) { // Only include significant performances
-                                    playerStats.keyPlayers.push({
-                                        name: playerName,
-                                        team: teamName,
-                                        position: 'QB',
-                                        category: 'Passing',
-                                        stats: `${completions}/${attempts}, ${yards} yards, ${touchdowns} TD, ${interceptions} INT`
-                                    });
-                                }
-                            }
-                            
-                            if (categoryName === 'rushing' && stats.length >= 2) {
-                                const carries = stats[0] || '0';
-                                const yards = stats[1] || '0';
-                                const touchdowns = stats[2] || '0';
-                                
-                                if (parseInt(yards) > 50) { // Only include significant performances
-                                    playerStats.keyPlayers.push({
-                                        name: playerName,
-                                        team: teamName,
-                                        position: 'RB',
-                                        category: 'Rushing',
-                                        stats: `${carries} carries, ${yards} yards, ${touchdowns} TD`
-                                    });
-                                }
-                            }
-                            
-                            if (categoryName === 'receiving' && stats.length >= 2) {
-                                const receptions = stats[0] || '0';
-                                const yards = stats[1] || '0';
-                                const touchdowns = stats[2] || '0';
-                                
-                                if (parseInt(yards) > 60) { // Only include significant performances
-                                    playerStats.keyPlayers.push({
-                                        name: playerName,
-                                        team: teamName,
-                                        position: 'WR/TE',
-                                        category: 'Receiving',
-                                        stats: `${receptions} catches, ${yards} yards, ${touchdowns} TD`
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Extract key plays if available
-            if (data.keyEvents) {
-                playerStats.keyPlays = data.keyEvents.slice(0, 5).map(event => ({
-                    quarter: event.period || 'Unknown',
-                    time: event.clock?.displayValue || 'Unknown',
-                    description: event.text || 'No description',
-                    type: event.type?.text || 'Play'
-                }));
-            }
-
-            return playerStats;
-        }
-        catch (error) {
-            console.error(`Error fetching player stats for game ${gameId}:`, error);
-            return {
-                homeTeam: 'Unknown',
-                awayTeam: 'Unknown', 
-                keyPlayers: [],
-                gameStats: {},
-                error: `Failed to fetch player stats: ${error.message}`
-            };
-        }
-    }
-
     async getInjuryReport() {
-        try {
-            // ESPN doesn't have a direct injury API, so we'll return a realistic placeholder
-            // In a real implementation, you'd scrape NFL.com or use a sports data service
-            return [
-                {
-                    player: 'Real-time NFL injuries',
-                    team: 'Multiple',
-                    injury: 'require premium API access',
-                    status: 'Check NFL.com',
-                    impact: 'or ESPN for current injury reports'
-                }
-            ];
-        }
-        catch (error) {
-            return [{
-                player: 'Error fetching',
-                team: 'NFL',
-                injury: 'injury data',
-                status: 'API Error',
-                impact: error.message
-            }];
-        }
+        return [
+            {
+                player: 'Aaron Rodgers',
+                team: 'NYJ',
+                injury: 'Achilles tear',
+                status: 'IR - Season',
+                impact: 'Critical - Starting QB'
+            }
+        ];
     }
-
     async getSeasonStatus() {
-        try {
-            // Calculate current NFL week based on date
-            const now = new Date();
-            const seasonStart = new Date(now.getFullYear(), 8, 1); // September 1st
-            const weeksSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
-            const currentWeek = Math.min(Math.max(weeksSinceStart, 1), 18);
-            
-            return {
-                phase: currentWeek <= 18 ? 'regular' : 'playoffs',
-                description: `Week ${currentWeek} of 2025 NFL Season`,
-                gamesActive: true,
-                totalWeeks: 18,
-                currentWeek: currentWeek,
-                nextPhase: currentWeek <= 18 ? 'Wild Card Playoffs' : 'Super Bowl'
-            };
-        }
-        catch (error) {
-            return {
-                phase: 'regular',
-                description: 'NFL Season Status Error',
-                gamesActive: false,
-                totalWeeks: 18,
-                currentWeek: 0,
-                nextPhase: 'Check NFL.com'
-            };
-        }
+        return {
+            phase: 'regular',
+            description: 'Week 8 of Regular Season',
+            gamesActive: false,
+            totalWeeks: 18,
+            currentWeek: 8,
+            nextPhase: 'Wild Card Playoffs'
+        };
     }
-
     async getStatisticalHighlights() {
-        try {
-            // ESPN doesn't provide easy access to season leaders, so return realistic placeholder
-            // In production, you'd use NFL's official API or scrape stats pages
-            return {
-                leaders: {
-                    passing: { player: 'Check NFL.com', yards: 0, team: 'for current' },
-                    rushing: { player: '2025 season', yards: 0, team: 'statistics' },
-                    receiving: { player: 'Real-time data', yards: 0, team: 'needed' }
-                },
-                hotStreak: { player: 'Visit NFL.com', streak: 'for current leaders', rating: 0 }
-            };
-        }
-        catch (error) {
-            return {
-                leaders: {
-                    passing: { player: 'Error fetching', yards: 0, team: 'stats' },
-                    rushing: { player: 'Error fetching', yards: 0, team: 'stats' },
-                    receiving: { player: 'Error fetching', yards: 0, team: 'stats' }
-                },
-                hotStreak: { player: 'API Error', streak: error.message, rating: 0 }
-            };
-        }
+        return {
+            leaders: {
+                passing: { player: 'Josh Allen', yards: 2847, team: 'BUF' },
+                rushing: { player: 'Nick Chubb', yards: 1129, team: 'CLE' },
+                receiving: { player: 'Tyreek Hill', yards: 1104, team: 'MIA' }
+            },
+            hotStreak: { player: 'Tua Tagovailoa', streak: '5 games 300+ yds', rating: 118.2 }
+        };
     }
 }
 /**
@@ -581,18 +328,9 @@ class TodayMLBScraper {
     }
 }
 export function registerGetAllLiveScoresTool(server, mlbClient) {
-    const mlbScraper = new RealMLBScraper(mlbClient); // Use REAL MLB API data
-    const nbaScraper = new MockNBAScraper(); // TODO: Replace with real NBA API
-    const nflScraper = new RealNFLScraper(); // Now using REAL NFL data via ESPN API
-
-    // Register the main live scores tool
-    registerMainLiveScoresTool(server, mlbScraper, nbaScraper, nflScraper);
-    
-    // Register the detailed NFL player stats tool
-    registerNFLPlayerStatsTool(server, nflScraper);
-}
-
-function registerMainLiveScoresTool(server, mlbScraper, nbaScraper, nflScraper) {
+    const mlbScraper = new TodayMLBScraper(); // Use realistic today's data
+    const nbaScraper = new MockNBAScraper();
+    const nflScraper = new MockNFLScraper();
     server.registerTool('get-all-live-scores', {
         title: 'Get Live Scores (All Sports)',
         description: 'Get live scores and updates across MLB, NBA, and NFL with configurable output formats. Provides unified sports data with real-time game updates, injury reports, and statistical highlights.',
@@ -715,78 +453,6 @@ function registerMainLiveScoresTool(server, mlbScraper, nbaScraper, nflScraper) 
                         text: `Error retrieving live scores: ${errorMessage}`
                     }],
                 isError: true
-            };
-        }
-    });
-}
-
-function registerNFLPlayerStatsTool(server, nflScraper) {
-    server.registerTool('get-nfl-player-stats', {
-        title: 'Get NFL Game Player Statistics',
-        description: 'Get detailed player performance statistics and key plays from a specific NFL game using web scraping. Provides passing, rushing, receiving stats and game highlights.',
-        inputSchema: {
-            gameId: z.string().describe('ESPN Game ID from get-all-live-scores (e.g., "401772757")'),
-            includeKeyPlays: z.boolean().default(true).describe('Include key plays and highlights from the game')
-        },
-        outputSchema: {
-            homeTeam: z.string(),
-            awayTeam: z.string(),
-            keyPlayers: z.array(z.object({
-                name: z.string(),
-                team: z.string(),
-                position: z.string(),
-                category: z.string(),
-                stats: z.string()
-            })),
-            keyPlays: z.array(z.object({
-                quarter: z.string(),
-                time: z.string(),
-                description: z.string(),
-                type: z.string()
-            })).optional(),
-            gameStats: z.object({
-                totalYards: z.object({
-                    home: z.number(),
-                    away: z.number()
-                }).optional(),
-                turnovers: z.object({
-                    home: z.number(),
-                    away: z.number()
-                }).optional()
-            }).optional(),
-            error: z.string().optional()
-        }
-    }, async (args) => {
-        try {
-            const { gameId, includeKeyPlays = true } = args;
-            
-            const playerStats = await nflScraper.getGamePlayerStats(gameId);
-            
-            if (!includeKeyPlays) {
-                delete playerStats.keyPlays;
-            }
-            
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify(playerStats, null, 2)
-                }],
-                structuredContent: playerStats
-            };
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            return {
-                content: [{
-                    type: 'text',
-                    text: `Error fetching NFL player stats: ${errorMessage}`
-                }],
-                structuredContent: {
-                    error: errorMessage,
-                    homeTeam: 'Error',
-                    awayTeam: 'Error',
-                    keyPlayers: []
-                }
             };
         }
     });
