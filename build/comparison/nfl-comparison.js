@@ -41,19 +41,34 @@ export class NFLComparison extends BaseComparison {
         if (!splits || !splits.categories) {
             return stats;
         }
-        // Build a flat map of all stats from all categories
-        const statMap = {};
+        // Build category-specific stat maps to handle duplicate stat names
+        const categoryStats = {};
         for (const category of splits.categories) {
+            categoryStats[category.name] = {};
             for (const stat of category.stats || []) {
-                statMap[stat.name] = stat.value;
+                categoryStats[category.name][stat.name] = stat.value;
             }
         }
         // Get metrics for this stat group (position or category)
         const metrics = this.getMetrics(statGroup);
-        // Extract each metric value using the stat name
+        const group = (statGroup || 'QB').toUpperCase();
+        // Extract each metric value using category-aware lookup
         for (const metric of metrics) {
-            const value = statMap[metric.key];
-            stats[metric.key] = value !== undefined ? value : 0;
+            let value = 0;
+            // For passing stats, prioritize the passing category for sacks (sacks taken)
+            if (group === 'PASSING' && metric.key === 'sacks') {
+                value = categoryStats['passing']?.[metric.key] || 0;
+            }
+            else {
+                // For other stats, use the first available value from any category
+                for (const categoryName in categoryStats) {
+                    if (categoryStats[categoryName][metric.key] !== undefined) {
+                        value = categoryStats[categoryName][metric.key];
+                        break;
+                    }
+                }
+            }
+            stats[metric.key] = value;
         }
         return stats;
     }
@@ -243,6 +258,7 @@ export class NFLComparison extends BaseComparison {
             tackles: ['TAC', 'Tackles', 'Total'],
             soloTackles: ['Solo', 'SOLO'],
             sacks: ['SCK', 'Sacks'],
+            sacksTaken: ['Sacks', 'SCK', 'SacksTaken'],
             passesDefended: ['PD', 'Pass Def', 'PassDef'],
             forcedFumbles: ['FF', 'Forced Fum'],
             fumbleRecoveries: ['FR', 'Fum Rec'],

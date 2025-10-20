@@ -143,6 +143,11 @@ export declare class MLBAPIClient extends BaseSportAPI {
      */
     getPlayerInfo(playerId: number): Promise<any>;
     /**
+     * Get comprehensive player overview with biographical and career context
+     * Uses ESPN's athlete API for rich player information
+     */
+    getPlayerOverview(playerId: string | number): Promise<import('./base-api.js').BasePlayerOverview | null>;
+    /**
      * Get box score data for a specific game
      */
     getBoxScore(gamePk: number): Promise<any>;
@@ -189,8 +194,8 @@ export declare class MLBAPIClient extends BaseSportAPI {
      */
     getMeta(type: string, ver?: string): Promise<any>;
     /**
-     * Search for players by name (implements BaseSportAPI)
-     * Wraps the MLB-specific searchMLBPlayers method
+     * Search for players by name using ESPN's athlete lookup APIs
+     * This ensures we get ESPN player IDs that work with the overview API
      */
     searchPlayers(name: string, options?: any): Promise<BasePlayer[]>;
     /**

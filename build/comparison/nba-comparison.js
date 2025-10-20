@@ -93,6 +93,21 @@ export class NBAComparison extends BaseComparison {
         if (playerData && playerData.fullName) {
             return playerData.fullName;
         }
+        // Try to get name from player info if available
+        if (playerData && playerData.player && playerData.player.fullName) {
+            return playerData.player.fullName;
+        }
+        // Try to get name from playerInfo field
+        if (playerData && playerData.playerInfo && playerData.playerInfo.fullName) {
+            return playerData.playerInfo.fullName;
+        }
+        // Try various other name fields that might be present
+        if (playerData && playerData.displayName) {
+            return playerData.displayName;
+        }
+        if (playerData && playerData.name) {
+            return playerData.name;
+        }
         // NBA stats don't include player name, so we'll need the ID
         return `Player ${playerData?.playerId || 'Unknown'}`;
     }

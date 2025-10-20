@@ -319,6 +319,67 @@ export class MLBAPIClient extends BaseSportAPI {
         return data.people[0];
     }
     /**
+     * Get comprehensive player overview with biographical and career context
+     * Uses ESPN's athlete API for rich player information
+     */
+    async getPlayerOverview(playerId) {
+        try {
+            const url = `https://site.web.api.espn.com/apis/common/v3/sports/baseball/mlb/athletes/${playerId}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`Failed to fetch MLB player overview for ${playerId}: ${response.status}`);
+                return null;
+            }
+            const data = await response.json();
+            const athlete = data.athlete;
+            if (!athlete) {
+                return null;
+            }
+            // Parse ESPN athlete data into BasePlayerOverview format
+            const overview = {
+                id: playerId,
+                fullName: athlete.fullName || athlete.displayName || 'Unknown',
+                firstName: athlete.firstName,
+                lastName: athlete.lastName,
+                displayName: athlete.displayName,
+                shortName: athlete.displayName,
+                weight: athlete.displayWeight,
+                height: athlete.displayHeight,
+                age: athlete.age,
+                birthDate: athlete.displayDOB,
+                birthPlace: athlete.displayBirthPlace,
+                college: athlete.college?.name,
+                position: athlete.position?.displayName || athlete.position?.name,
+                jerseyNumber: athlete.displayJersey?.replace('#', ''),
+                team: athlete.team ? {
+                    id: athlete.team.id,
+                    name: athlete.team.name,
+                    abbreviation: athlete.team.abbreviation,
+                    displayName: athlete.team.displayName
+                } : undefined,
+                experience: athlete.displayExperience,
+                status: athlete.status?.name,
+                headshot: athlete.headshot?.href,
+                careerSummary: {
+                    seasons: athlete.displayExperience,
+                    highlights: [],
+                    awards: []
+                },
+                draftInfo: athlete.displayDraft ? {
+                    year: parseInt(athlete.displayDraft.split(':')[0]),
+                    round: parseInt(athlete.displayDraft.match(/Rd (\d+)/)?.[1] || '0'),
+                    pick: parseInt(athlete.displayDraft.match(/Pk (\d+)/)?.[1] || '0'),
+                    team: athlete.displayDraft.match(/\(([A-Z]+)\)/)?.[1]
+                } : undefined
+            };
+            return overview;
+        }
+        catch (error) {
+            console.error(`Error fetching MLB player overview for ${playerId}:`, error);
+            return null;
+        }
+    }
+    /**
      * Get box score data for a specific game
      */
     async getBoxScore(gamePk) {
@@ -631,17 +692,83 @@ export class MLBAPIClient extends BaseSportAPI {
     // Phase 1 Refactoring: Implement abstract methods from BaseSportAPI
     // ========================================
     /**
-     * Search for players by name (implements BaseSportAPI)
-     * Wraps the MLB-specific searchMLBPlayers method
+     * Search for players by name using ESPN's athlete lookup APIs
+     * This ensures we get ESPN player IDs that work with the overview API
      */
     async searchPlayers(name, options) {
-        const results = await this.searchMLBPlayers(name, options?.activeStatus || 'Y');
-        return results.people?.map((player) => ({
-            id: player.id,
-            fullName: player.fullName,
-            firstName: player.firstName,
-            lastName: player.lastName
-        })) || [];
+        // Try ESPN search endpoints to get ESPN player IDs
+        const endpoints = [
+            // ESPN Search By Name (Fuzzy Lookup) - PRIMARY METHOD
+            `https://site.web.api.espn.com/apis/common/v3/search?query=${encodeURIComponent(name)}&limit=10&mode=prefix`,
+            // ESPN Core API v3 - Active players (comprehensive fallback)
+            `https://sports.core.api.espn.com/v3/sports/baseball/mlb/athletes?limit=20000&active=true`,
+            // ESPN Core API v3 - Retired players (comprehensive fallback)
+            `https://sports.core.api.espn.com/v3/sports/baseball/mlb/athletes?limit=20000&active=false`
+        ];
+        for (const [index, endpoint] of endpoints.entries()) {
+            try {
+                console.log(`Trying MLB ESPN endpoint ${index + 1}...`);
+                const response = await fetch(endpoint);
+                if (!response.ok) {
+                    console.log(`MLB endpoint ${index + 1} failed with status: ${response.status}`);
+                    continue;
+                }
+                const data = await response.json();
+                const results = [];
+                // Handle different response formats
+                if (index === 0 && data?.contents) {
+                    // ESPN Search API format (fuzzy name lookup)
+                    for (const item of data.contents) {
+                        // Filter for MLB athletes only
+                        if (item.type === 'athlete' && item.sportName === 'baseball' && item.leagueName === 'mlb') {
+                            results.push({
+                                id: item.id,
+                                fullName: item.displayName,
+                                firstName: item.firstName || '',
+                                lastName: item.lastName || ''
+                            });
+                        }
+                    }
+                }
+                else if ((index === 1 || index === 2) && data?.items) {
+                    // ESPN Core API v3 format (active=true/false endpoints)
+                    for (const athlete of data.items) {
+                        if (athlete.displayName && athlete.displayName.toLowerCase().includes(name.toLowerCase())) {
+                            results.push({
+                                id: athlete.id,
+                                fullName: athlete.displayName,
+                                firstName: athlete.firstName || '',
+                                lastName: athlete.lastName || ''
+                            });
+                        }
+                    }
+                }
+                if (results.length > 0) {
+                    const endpointType = index === 0 ? 'fuzzy search' : index === 1 ? 'active' : 'retired';
+                    console.log(`Found ${results.length} MLB players via ESPN ${endpointType} endpoint ${index + 1}`);
+                    return results.slice(0, 20); // Limit results
+                }
+            }
+            catch (error) {
+                console.log(`MLB ESPN endpoint ${index + 1} error:`, error instanceof Error ? error.message : 'Unknown error');
+                continue;
+            }
+        }
+        // Fallback to MLB.com API search but return ESPN-like format
+        console.log('Falling back to MLB.com API search...');
+        try {
+            const results = await this.searchMLBPlayers(name, options?.activeStatus || 'Y');
+            return results.people?.map((player) => ({
+                id: `mlb_${player.id}`, // Prefix to indicate this is not an ESPN ID
+                fullName: player.fullName,
+                firstName: player.firstName,
+                lastName: player.lastName
+            })) || [];
+        }
+        catch (error) {
+            console.log('MLB.com API search also failed:', error);
+            return [];
+        }
     }
     /**
      * Get all teams (implements BaseSportAPI)

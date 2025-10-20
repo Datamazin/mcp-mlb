@@ -48,6 +48,7 @@ export interface NBAGame extends BaseGame {
 
 export interface NBAPlayerStats {
   playerId: string;
+  fullName?: string;
   season: string;
   gp: number;
   pts: number;
@@ -192,8 +193,14 @@ export class NBAAPIClient extends BaseSportAPI {
       const careerTotals = this.parseResultSet<any>(response.resultSets[0]);
       const totals = careerTotals[careerTotals.length - 1];
 
+      // Get player name from cache
+      const players = await this.loadPlayerCache();
+      const player = players.find(p => p.id === String(playerId));
+      const playerName = player ? player.fullName : `Player ${playerId}`;
+
       return {
         playerId: String(playerId),
+        fullName: playerName,
         season: 'Career',
         gp: totals.gp || 0,
         pts: totals.pts || 0,
@@ -348,6 +355,73 @@ export class NBAAPIClient extends BaseSportAPI {
       };
     } catch (error) {
       throw new NBAAPIError(`Failed to get player info for ${playerId}`);
+    }
+  }
+
+  /**
+   * Get comprehensive player overview with biographical and career context
+   * Uses ESPN's athlete API for rich player information
+   */
+  async getPlayerOverview(playerId: string | number): Promise<import('./base-api.js').BasePlayerOverview | null> {
+    try {
+      const url = `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/${playerId}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error(`Failed to fetch NBA player overview for ${playerId}: ${response.status}`);
+        return null;
+      }
+      
+      const data = await response.json();
+      const athlete = data.athlete;
+      
+      if (!athlete) {
+        return null;
+      }
+      
+      // Parse ESPN athlete data into BasePlayerOverview format
+      const overview: import('./base-api.js').BasePlayerOverview = {
+        id: playerId,
+        fullName: athlete.fullName || athlete.displayName || 'Unknown',
+        firstName: athlete.firstName,
+        lastName: athlete.lastName,
+        displayName: athlete.displayName,
+        shortName: athlete.displayName,
+        weight: athlete.displayWeight,
+        height: athlete.displayHeight,
+        age: athlete.age,
+        birthDate: athlete.displayDOB,
+        birthPlace: athlete.displayBirthPlace,
+        college: athlete.college?.name,
+        position: athlete.position?.displayName || athlete.position?.name,
+        jerseyNumber: athlete.displayJersey?.replace('#', ''),
+        team: athlete.team ? {
+          id: athlete.team.id,
+          name: athlete.team.name,
+          abbreviation: athlete.team.abbreviation,
+          displayName: athlete.team.displayName
+        } : undefined,
+        experience: athlete.displayExperience,
+        status: athlete.status?.name,
+        headshot: athlete.headshot?.href,
+        careerSummary: {
+          seasons: athlete.displayExperience,
+          highlights: [],
+          awards: []
+        },
+        draftInfo: athlete.displayDraft ? {
+          year: parseInt(athlete.displayDraft.split(':')[0]),
+          round: parseInt(athlete.displayDraft.match(/Rd (\d+)/)?.[1] || '0'),
+          pick: parseInt(athlete.displayDraft.match(/Pk (\d+)/)?.[1] || '0'),
+          team: athlete.displayDraft.match(/\(([A-Z]+)\)/)?.[1]
+        } : undefined
+      };
+      
+      return overview;
+      
+    } catch (error) {
+      console.error(`Error fetching NBA player overview for ${playerId}:`, error);
+      return null;
     }
   }
 }

@@ -32,6 +32,7 @@ export interface NBAGame extends BaseGame {
 }
 export interface NBAPlayerStats {
     playerId: string;
+    fullName?: string;
     season: string;
     gp: number;
     pts: number;
@@ -74,6 +75,11 @@ export declare class NBAAPIClient extends BaseSportAPI {
     getSchedule(params: BaseScheduleParams): Promise<BaseGame[]>;
     getGame(gameId: string | number): Promise<BaseGame>;
     getPlayerInfo(playerId: string | number): Promise<BasePlayer>;
+    /**
+     * Get comprehensive player overview with biographical and career context
+     * Uses ESPN's athlete API for rich player information
+     */
+    getPlayerOverview(playerId: string | number): Promise<import('./base-api.js').BasePlayerOverview | null>;
 }
 export declare const nbaApi: NBAAPIClient;
 //# sourceMappingURL=nba-api.d.ts.map

@@ -62,6 +62,14 @@ export class BaseSportAPI {
             throw new SportAPIError(`Failed to fetch from API: ${errorMessage}`, undefined, endpoint);
         }
     }
+    /**
+     * Get comprehensive player overview with biographical and career context
+     * Optional method - can be implemented by sports that support ESPN overview API
+     */
+    async getPlayerOverview(playerId) {
+        // Default implementation returns null - can be overridden by sport-specific APIs
+        return null;
+    }
 }
 /**
  * Sport League Enum

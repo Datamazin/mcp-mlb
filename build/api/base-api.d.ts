@@ -24,6 +24,50 @@ export interface BasePlayer {
     lastName?: string;
 }
 /**
+ * Extended player overview interface with biographical and career context
+ */
+export interface BasePlayerOverview {
+    id: number | string;
+    fullName: string;
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    shortName?: string;
+    weight?: number;
+    height?: number;
+    age?: number;
+    birthDate?: string;
+    birthPlace?: {
+        city?: string;
+        state?: string;
+        country?: string;
+    };
+    college?: string;
+    position?: string;
+    jerseyNumber?: number;
+    team?: {
+        id: string;
+        name: string;
+        abbreviation?: string;
+        displayName?: string;
+    };
+    experience?: number;
+    status?: string;
+    headshot?: string;
+    careerSummary?: {
+        seasons?: number;
+        totalGames?: number;
+        highlights?: string[];
+        awards?: string[];
+    };
+    draftInfo?: {
+        year?: number;
+        round?: number;
+        pick?: number;
+        team?: string;
+    };
+}
+/**
  * Generic team interface - all sports must implement this
  */
 export interface BaseTeam {
@@ -101,6 +145,11 @@ export declare abstract class BaseSportAPI {
      * Must be implemented by each sport
      */
     abstract getPlayerInfo(playerId: number | string): Promise<any>;
+    /**
+     * Get comprehensive player overview with biographical and career context
+     * Optional method - can be implemented by sports that support ESPN overview API
+     */
+    getPlayerOverview(playerId: number | string): Promise<BasePlayerOverview | null>;
 }
 /**
  * Sport League Enum
